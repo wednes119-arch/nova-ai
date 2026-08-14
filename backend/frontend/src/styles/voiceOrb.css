@@ -1,0 +1,246 @@
+/* =========================
+   VOICE ORB
+========================= */
+
+.voice-orb-wrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 5px 0 20px;
+}
+
+
+/* =========================
+   RIPPLE RINGS
+========================= */
+
+.voice-ring {
+  position: absolute;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(79, 140, 255, 0.28);
+
+  animation: voiceRingPulse 2.4s ease-out infinite;
+}
+
+.voice-ring.ring1 {
+  animation-delay: 0s;
+}
+
+.voice-ring.ring2 {
+  animation-delay: 0.8s;
+}
+
+.voice-ring.ring3 {
+  animation-delay: 1.6s;
+}
+
+
+/* =========================
+   MAIN ORB
+========================= */
+
+.voice-orb-core {
+  position: relative;
+
+  width: 76px;
+  height: 76px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #5b8cff,
+    #7c4dff
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow:
+    0 0 25px rgba(91, 140, 255, 0.65),
+    0 0 60px rgba(124, 77, 255, 0.35);
+
+  transition: all 0.3s ease;
+
+  z-index: 2;
+}
+
+
+/* =========================
+   INNER GLOW
+========================= */
+
+.orb-inner {
+  width: 25px;
+  height: 25px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.9);
+
+  box-shadow:
+    0 0 15px rgba(255, 255, 255, 0.8);
+
+  transition: all 0.3s ease;
+}
+
+
+/* =========================
+   LISTENING
+========================= */
+
+.voice-orb-core.listening {
+  animation: orbListening 1.2s ease-in-out infinite;
+}
+
+
+/* =========================
+   THINKING
+========================= */
+
+.voice-orb-core.thinking {
+  background: linear-gradient(
+    135deg,
+    #f59e0b,
+    #f97316
+  );
+
+  box-shadow:
+    0 0 30px rgba(245, 158, 11, 0.7),
+    0 0 70px rgba(249, 115, 22, 0.35);
+
+  animation: orbThinking 1s linear infinite;
+}
+
+
+/* =========================
+   SPEAKING
+========================= */
+
+.voice-orb-core.speaking {
+  background: linear-gradient(
+    135deg,
+    #10b981,
+    #06b6d4
+  );
+
+  box-shadow:
+    0 0 30px rgba(16, 185, 129, 0.75),
+    0 0 70px rgba(6, 182, 212, 0.35);
+
+  animation: orbSpeaking 0.65s ease-in-out infinite;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes voiceRingPulse {
+
+  0% {
+    transform: scale(0.75);
+    opacity: 0.8;
+  }
+
+  70% {
+    transform: scale(1.35);
+    opacity: 0.15;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+
+@keyframes orbListening {
+
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+@keyframes orbThinking {
+
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.08);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+
+@keyframes orbSpeaking {
+
+  0% {
+    transform: scale(0.92);
+  }
+
+  25% {
+    transform: scale(1.15);
+  }
+
+  50% {
+    transform: scale(0.98);
+  }
+
+  75% {
+    transform: scale(1.18);
+  }
+
+  100% {
+    transform: scale(0.92);
+  }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+  .voice-orb-wrapper {
+    width: 180px;
+    height: 180px;
+  }
+
+  .voice-ring {
+    width: 125px;
+    height: 125px;
+  }
+
+  .voice-orb-core {
+    width: 65px;
+    height: 65px;
+  }
+
+}

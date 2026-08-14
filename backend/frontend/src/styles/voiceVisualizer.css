@@ -1,0 +1,43 @@
+.voice-visualizer{
+
+    width:100%;
+
+    height:90px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-end;
+
+    gap:4px;
+
+    margin:20px 0;
+
+}
+
+.voice-bar{
+
+    width:6px;
+
+    min-height:10px;
+
+    border-radius:20px;
+
+    background:linear-gradient(
+        to top,
+        #4f8cff,
+        #8b5cf6
+    );
+
+    transition:
+        height .08s linear,
+        background .3s;
+
+}
+
+.voice-active{
+
+    box-shadow:0 0 12px rgba(79,140,255,.6);
+
+}

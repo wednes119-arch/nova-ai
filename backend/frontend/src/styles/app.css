@@ -1,0 +1,146 @@
+/* =========================================================
+   NOVA AI — GLOBAL DARK CHAT FIX
+   IMPORTANT: Put this AFTER all other CSS
+========================================================= */
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+
+    background: #050b09 !important;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Main application wrapper */
+.app,
+.app-container,
+.main-app,
+.dashboard,
+.layout,
+.app-layout {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+
+    margin: 0;
+    padding: 0;
+
+    background: #050b09 !important;
+}
+
+/* =========================================================
+   CHAT LAYOUT
+========================================================= */
+
+.chat-container {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    background: #050b09 !important;
+
+    color: #e7f2ed;
+
+    overflow: hidden;
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.messages-area {
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(79, 169, 135, 0.025),
+            transparent 45%
+        ),
+        #050b09 !important;
+}
+
+/* =========================================================
+   INPUT AREA
+========================================================= */
+
+.chat-input-area {
+    background: #08120f !important;
+
+    border-top: 1px solid #1b3029 !important;
+}
+
+/* =========================================================
+   REMOVE WHITE SPACE CAUSED BY PARENT ELEMENTS
+========================================================= */
+
+.chat-container,
+.chat-container > *,
+.messages-area,
+.chat-input-area {
+    color-scheme: dark;
+}
+
+/* Any direct wrapper around chat */
+.chat-page,
+.chat-wrapper,
+.chat-main,
+.chat-content,
+.main-content,
+.content-area {
+    background: #050b09 !important;
+    min-height: 100%;
+}
+
+/* =========================================================
+   FILE INPUT / UPLOAD PREVIEW
+========================================================= */
+
+.upload-preview {
+    background: #0b1713 !important;
+    border-color: #203a31 !important;
+}
+
+.upload-file-name {
+    color: #d8e8e1 !important;
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.chat-input {
+    background: transparent !important;
+    color: #e7f2ed !important;
+}
+
+.chat-input::placeholder {
+    color: #71847c !important;
+}
+
+/* =========================================================
+   MOBILE / TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    html,
+    body,
+    #root {
+        background: #050b09 !important;
+    }
+
+    .chat-container {
+        background: #050b09 !important;
+    }
+
+    .messages-area {
+        background: #050b09 !important;
+    }
+}

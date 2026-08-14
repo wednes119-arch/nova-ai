@@ -1,0 +1,625 @@
+/* =====================================================
+   NOVA AI — PREMIUM NAVBAR
+   LIGHT + DARK THEME
+===================================================== */
+
+.navbar {
+  height: 70px;
+  min-height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  position: relative;
+  z-index: 20;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.94)
+    );
+
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 18px rgba(15, 23, 42, 0.025);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* =====================================================
+   DARK THEME — NAVBAR
+===================================================== */
+
+html[data-theme="dark"] .navbar {
+  background:
+    linear-gradient(
+      180deg,
+      #08110e 0%,
+      #060e0c 100%
+    ) !important;
+
+  border-bottom:
+    1px solid rgba(48, 76, 65, 0.65) !important;
+
+  box-shadow:
+    0 1px 0 rgba(82, 184, 148, 0.035),
+    0 5px 22px rgba(0, 0, 0, 0.30) !important;
+}
+
+
+/* =====================================================
+   TOP ACCENT LINE
+===================================================== */
+
+.navbar::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(79, 169, 135, 0.25) 20%,
+      #4fa987 50%,
+      rgba(79, 169, 135, 0.25) 80%,
+      transparent 100%
+    );
+
+  opacity: 0.8;
+
+  pointer-events: none;
+}
+
+
+html[data-theme="dark"] .navbar::before {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(82, 184, 148, 0.15) 20%,
+      #52b894 50%,
+      rgba(82, 184, 148, 0.15) 80%,
+      transparent 100%
+    );
+
+  opacity: 0.9;
+}
+
+
+/* =====================================================
+   LEFT SIDE
+===================================================== */
+
+.navbar-left {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+
+  animation:
+    navbarContentIn 0.45s ease;
+}
+
+
+/* =====================================================
+   TITLE ROW
+===================================================== */
+
+.navbar-title-row {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+}
+
+
+/* =====================================================
+   NOVA STATUS DOT
+===================================================== */
+
+.nova-status-dot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 8px;
+
+  border-radius: 50%;
+
+  background: #4fa987;
+
+  box-shadow:
+    0 0 0 4px rgba(79, 169, 135, 0.08),
+    0 0 12px rgba(79, 169, 135, 0.25);
+
+  animation:
+    novaDotPulse 2.2s ease-in-out infinite;
+}
+
+
+html[data-theme="dark"] .nova-status-dot {
+  background: #52b894;
+
+  box-shadow:
+    0 0 0 4px rgba(82, 184, 148, 0.07),
+    0 0 13px rgba(82, 184, 148, 0.28);
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.navbar-title {
+  margin: 0;
+
+  max-width: min(600px, 55vw);
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #172033;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 19px;
+
+  font-weight: 650;
+
+  letter-spacing: -0.025em;
+
+  line-height: 1.2;
+
+  transition:
+    color 0.25s ease,
+    max-width 0.25s ease;
+}
+
+
+html[data-theme="dark"] .navbar-title {
+  color: #f0f7f4 !important;
+}
+
+
+/* =====================================================
+   SUBTITLE
+===================================================== */
+
+.navbar-subtitle {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 5px;
+  margin-left: 17px;
+
+  color: #94a3b8;
+
+  font-size: 12px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.01em;
+
+  transition:
+    color 0.25s ease;
+}
+
+
+html[data-theme="dark"] .navbar-subtitle {
+  color: #8da79d !important;
+}
+
+
+.subtitle-icon {
+  color: #4fa987;
+
+  font-size: 11px;
+
+  animation:
+    starFloat 2.8s ease-in-out infinite;
+}
+
+
+html[data-theme="dark"] .subtitle-icon {
+  color: #52b894;
+}
+
+
+/* =====================================================
+   RIGHT SIDE
+===================================================== */
+
+.navbar-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  animation:
+    navbarContentIn 0.45s ease 0.08s both;
+}
+
+
+/* =====================================================
+   ONLINE STATUS
+===================================================== */
+
+.navbar-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 7px 11px;
+
+  border:
+    1px solid rgba(226, 232, 240, 0.8);
+
+  border-radius: 20px;
+
+  background:
+    rgba(248, 250, 252, 0.8);
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  font-weight: 550;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+
+/* DARK STATUS */
+
+html[data-theme="dark"] .navbar-status {
+  background:
+    rgba(17, 32, 27, 0.90) !important;
+
+  border:
+    1px solid rgba(55, 84, 72, 0.65) !important;
+
+  color:
+    #9eb5ac !important;
+}
+
+
+.navbar-status:hover {
+  background: #ffffff;
+
+  border-color: #dce7e2;
+
+  transform: translateY(-1px);
+}
+
+
+html[data-theme="dark"] .navbar-status:hover {
+  background:
+    #14231e !important;
+
+  border-color:
+    #3f725e !important;
+
+  color:
+    #b8cec4 !important;
+}
+
+
+/* =====================================================
+   STATUS PULSE
+===================================================== */
+
+.status-pulse {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #4fa987;
+
+  box-shadow:
+    0 0 0 3px rgba(79, 169, 135, 0.10);
+
+  animation:
+    statusPulse 2s ease-in-out infinite;
+}
+
+
+html[data-theme="dark"] .status-pulse {
+  background: #52b894;
+
+  box-shadow:
+    0 0 0 3px rgba(82, 184, 148, 0.10);
+}
+
+
+/* =====================================================
+   USER AVATAR
+===================================================== */
+
+.user-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #5bb795,
+      #429a79
+    );
+
+  color: #ffffff;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 16px;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 12px rgba(66, 154, 121, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20);
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+
+.user-avatar:hover {
+  transform:
+    translateY(-2px)
+    scale(1.05);
+
+  box-shadow:
+    0 8px 20px rgba(66, 154, 121, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+
+.user-avatar:active {
+  transform: scale(0.96);
+}
+
+
+/* =====================================================
+   AVATAR HIGHLIGHT
+===================================================== */
+
+.user-avatar::before {
+  content: "";
+
+  position: absolute;
+
+  top: 3px;
+  left: 7px;
+
+  width: 11px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.18);
+
+  transform:
+    rotate(-25deg);
+
+  pointer-events: none;
+}
+
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+
+@keyframes navbarContentIn {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+@keyframes novaDotPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+
+    box-shadow:
+      0 0 0 4px rgba(79, 169, 135, 0.08),
+      0 0 12px rgba(79, 169, 135, 0.20);
+  }
+
+  50% {
+    transform: scale(1.15);
+
+    box-shadow:
+      0 0 0 5px rgba(79, 169, 135, 0.05),
+      0 0 17px rgba(79, 169, 135, 0.30);
+  }
+
+}
+
+
+@keyframes statusPulse {
+
+  0%,
+  100% {
+    opacity: 0.7;
+
+    transform:
+      scale(0.95);
+  }
+
+  50% {
+    opacity: 1;
+
+    transform:
+      scale(1.15);
+  }
+
+}
+
+
+@keyframes starFloat {
+
+  0%,
+  100% {
+    transform:
+      translateY(0);
+
+    opacity: 0.75;
+  }
+
+  50% {
+    transform:
+      translateY(-1px);
+
+    opacity: 1;
+  }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .navbar {
+    height: 64px;
+    min-height: 64px;
+
+    padding: 0 18px;
+  }
+
+  .navbar-title {
+    font-size: 17px;
+
+    max-width: 45vw;
+  }
+
+  .navbar-subtitle {
+    font-size: 11px;
+
+    margin-top: 3px;
+  }
+
+  .navbar-status {
+    display: none;
+  }
+
+  .user-avatar {
+    width: 38px;
+    height: 38px;
+
+    flex-basis: 38px;
+
+    font-size: 15px;
+  }
+
+}
+
+
+@media (max-width: 450px) {
+
+  .navbar {
+    padding: 0 14px;
+  }
+
+  .navbar-title {
+    max-width: 55vw;
+
+    font-size: 16px;
+  }
+
+  .navbar-subtitle {
+    display: none;
+  }
+
+  .nova-status-dot {
+    width: 7px;
+    height: 7px;
+
+    flex-basis: 7px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+
+    flex-basis: 36px;
+  }
+
+}

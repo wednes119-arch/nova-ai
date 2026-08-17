@@ -1,24 +1,18 @@
+from dotenv import load_dotenv
+load_dotenv()
 import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "sqlite:///./nova_ai.db"
-)
-
-# Vercel serverless filesystem is read-only except /tmp
-if os.getenv("VERCEL"):
-    DATABASE_URL = "sqlite:////tmp/nova_ai.db"
-
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False}
-    if DATABASE_URL.startswith("sqlite")
-    else {}
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(

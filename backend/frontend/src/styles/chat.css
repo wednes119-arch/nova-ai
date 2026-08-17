@@ -2404,3 +2404,395 @@ html[data-theme="dark"] .nova-welcome-loader span {
   }
 
 }
+
+/* =========================================================
+   NOVA AI — FINAL MOBILE RESPONSIVE PATCH
+========================================================= */
+
+@media (max-width: 700px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .chat-container {
+    width: 100%;
+    max-width: 100%;
+    height: calc(100dvh - 64px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* -----------------------------
+     Messages
+  ----------------------------- */
+
+  .messages-area {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    padding:
+      14px
+      10px
+      115px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .message-list {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    margin: 0;
+    gap: 14px;
+  }
+
+  .message-list > * {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* -----------------------------
+     Empty welcome
+  ----------------------------- */
+
+  .chat-empty {
+    width: 100%;
+    min-height: 100%;
+
+    padding:
+      25px
+      8px
+      90px;
+  }
+
+  .welcome-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .welcome-content h2 {
+    max-width: 100%;
+
+    font-size: 26px;
+
+    line-height: 1.2;
+
+    word-break: normal;
+  }
+
+  .welcome-content p {
+    width: 100%;
+    max-width: 330px;
+
+    font-size: 13px;
+
+    line-height: 1.65;
+  }
+
+  .welcome-suggestions {
+    width: 100%;
+    max-width: 350px;
+
+    padding: 0 5px;
+
+    gap: 7px;
+  }
+
+  .welcome-suggestions button {
+    max-width: 100%;
+
+    padding: 8px 10px;
+
+    font-size: 11px;
+  }
+
+  /* -----------------------------
+     PDF preview
+  ----------------------------- */
+
+  .upload-preview {
+    width: calc(100% - 16px);
+    max-width: none;
+
+    margin:
+      0
+      8px;
+
+    min-width: 0;
+
+    border-radius: 14px;
+  }
+
+  .upload-preview-info {
+    min-width: 0;
+  }
+
+  .upload-preview-info strong {
+    max-width: 100%;
+  }
+
+  /* -----------------------------
+     Composer
+  ----------------------------- */
+
+  .chat-composer-wrap {
+    width: 100%;
+    max-width: 100%;
+
+    padding:
+      5px
+      7px
+      max(8px, env(safe-area-inset-bottom));
+  }
+
+  .chat-input-area {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    min-height: 54px;
+
+    padding: 7px;
+
+    gap: 3px;
+
+    border-radius: 16px;
+  }
+
+  /* -----------------------------
+     Buttons
+  ----------------------------- */
+
+  .composer-btn {
+    width: 35px;
+    height: 35px;
+
+    flex:
+      0 0
+      35px;
+
+    padding: 0;
+
+    font-size: 15px;
+  }
+
+  .send-btn {
+    width: 36px;
+    height: 36px;
+
+    flex:
+      0 0
+      36px;
+
+    padding: 0;
+  }
+
+  /* -----------------------------
+     Text input
+  ----------------------------- */
+
+  .chat-input {
+    width: 100%;
+    min-width: 0;
+
+    min-height: 36px;
+
+    max-height: 120px;
+
+    padding:
+      7px
+      4px;
+
+    font-size: 14px;
+
+    line-height: 20px;
+
+    overflow-x: hidden;
+  }
+
+  /* -----------------------------
+     Footer
+  ----------------------------- */
+
+  .composer-footer {
+    width: 100%;
+    max-width: 100%;
+
+    margin-top: 5px;
+
+    padding:
+      0
+      3px;
+
+    justify-content: center;
+
+    text-align: center;
+  }
+
+  .composer-footer > span:first-child {
+    display: block;
+
+    max-width: 100%;
+
+    font-size: 9px;
+  }
+
+  .composer-shortcut {
+    display: none;
+  }
+
+  /* -----------------------------
+     Thinking
+  ----------------------------- */
+
+  .nova-thinking {
+    width: 100%;
+    max-width: 100%;
+
+    margin-top: 5px;
+
+    gap: 9px;
+  }
+
+  .thinking-avatar {
+    width: 30px;
+    height: 30px;
+
+    flex-basis: 30px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+  }
+
+  /* -----------------------------
+     Welcome animation
+  ----------------------------- */
+
+  .nova-welcome-screen {
+    width: 100%;
+    height: 100%;
+
+    padding:
+      20px;
+  }
+
+  .nova-welcome-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .nova-welcome-text h1 {
+    font-size: clamp(28px, 9vw, 34px);
+  }
+
+  .nova-welcome-text p {
+    width: 100%;
+    max-width: 290px;
+
+    padding: 0 5px;
+
+    font-size: 12px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .messages-area {
+    padding:
+      10px
+      7px
+      110px;
+  }
+
+  .chat-input-area {
+    padding: 6px;
+
+    gap: 2px;
+  }
+
+  .composer-btn {
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
+
+    border-radius: 9px;
+  }
+
+  .send-btn {
+    width: 33px;
+    height: 33px;
+
+    flex-basis: 33px;
+
+    border-radius: 10px;
+  }
+
+  .chat-input {
+    font-size: 13px;
+
+    padding:
+      6px
+      3px;
+  }
+
+  .welcome-content h2 {
+    font-size: 23px;
+  }
+
+  .welcome-content p {
+    max-width: 290px;
+
+    font-size: 12px;
+  }
+
+  .welcome-suggestions {
+    max-width: 300px;
+  }
+
+  .welcome-suggestions button {
+    padding:
+      7px
+      8px;
+
+    font-size: 10px;
+  }
+
+  .composer-footer > span:first-child {
+    font-size: 8px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE SAFE AREA
+========================================================= */
+
+@supports (padding: max(0px)) {
+
+  .chat-composer-wrap {
+    padding-bottom:
+      max(
+        8px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+}

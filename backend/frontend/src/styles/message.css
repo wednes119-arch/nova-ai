@@ -1577,3 +1577,572 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
 }
 
+/* =========================================================
+   MOBILE RESPONSIVE PATCH
+   Existing UI / functionality unchanged
+========================================================= */
+
+@media (max-width: 700px) {
+
+  /* -----------------------------------------
+     MESSAGE WRAPPERS
+  ----------------------------------------- */
+
+  .nova-user-message-wrapper,
+  .nova-ai-message-wrapper,
+  .nova-ai-message {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+
+  /* -----------------------------------------
+     USER MESSAGE
+  ----------------------------------------- */
+
+  .nova-user-message-bubble {
+    width: auto;
+    max-width: 88%;
+    min-width: 0;
+
+    padding: 10px 13px;
+
+    box-sizing: border-box;
+  }
+
+
+  .nova-user-message-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    font-size: 13px;
+    line-height: 1.55;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  .nova-user-message-content p {
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  .nova-user-message-content ul,
+  .nova-user-message-content ol {
+    max-width: 100%;
+
+    padding-left: 19px;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* -----------------------------------------
+     USER LINKS / CODE
+  ----------------------------------------- */
+
+  .nova-user-message-content a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  .nova-user-message-content code {
+    max-width: 100%;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  /* -----------------------------------------
+     EDIT MESSAGE
+  ----------------------------------------- */
+
+  .nova-edit-message-box {
+    width: 88%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+  }
+
+
+  .nova-edit-message-box textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    font-size: 13px;
+  }
+
+
+  .nova-edit-message-actions {
+    width: 100%;
+    max-width: 100%;
+
+    flex-wrap: wrap;
+  }
+
+
+  /* -----------------------------------------
+     AI CONTENT
+  ----------------------------------------- */
+
+  .nova-ai-message-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    font-size: 13px;
+    line-height: 1.65;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  .nova-ai-message-content p,
+  .nova-ai-message-content li,
+  .nova-ai-message-content h1,
+  .nova-ai-message-content h2,
+  .nova-ai-message-content h3,
+  .nova-ai-message-content h4 {
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  /* -----------------------------------------
+     HEADINGS
+  ----------------------------------------- */
+
+  .nova-ai-message-content h1 {
+    font-size: 21px;
+  }
+
+  .nova-ai-message-content h2 {
+    font-size: 18px;
+  }
+
+  .nova-ai-message-content h3 {
+    font-size: 16px;
+  }
+
+  .nova-ai-message-content h4 {
+    font-size: 14px;
+  }
+
+
+  /* -----------------------------------------
+     LISTS
+  ----------------------------------------- */
+
+  .nova-ai-message-content ul,
+  .nova-ai-message-content ol {
+    padding-left: 20px;
+
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* -----------------------------------------
+     BLOCKQUOTE
+  ----------------------------------------- */
+
+  .nova-ai-message-content blockquote {
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    margin: 10px 0;
+
+    padding: 7px 10px;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+
+  /* -----------------------------------------
+     TABLE
+     Prevent horizontal page overflow
+  ----------------------------------------- */
+
+  .nova-ai-message-content table {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    border-radius: 9px;
+
+    white-space: nowrap;
+  }
+
+
+  .nova-ai-message-content th,
+  .nova-ai-message-content td {
+    min-width: 90px;
+
+    padding: 7px 9px;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+  }
+
+
+  /* -----------------------------------------
+     CODE BLOCK
+  ----------------------------------------- */
+
+  .nova-ai-message-content pre {
+    width: 100%;
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    margin: 11px 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    border-radius: 10px;
+  }
+
+
+  .nova-ai-message-content pre code {
+    white-space: pre;
+
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+
+
+  /* -----------------------------------------
+     AI ACTIONS
+  ----------------------------------------- */
+
+  .nova-message-actions {
+    width: 100%;
+    max-width: 100%;
+
+    gap: 3px;
+
+    margin-top: 10px;
+
+    flex-wrap: wrap;
+  }
+
+
+  .nova-message-action-btn,
+  .nova-message-action-icon {
+    flex: 0 0 auto;
+
+    width: 30px;
+    height: 30px;
+
+    box-sizing: border-box;
+  }
+
+
+  /* Copy becomes icon-only on mobile */
+
+  .nova-message-action-btn span {
+    display: none;
+  }
+
+
+  .nova-message-action-btn {
+    padding: 0;
+  }
+
+
+  /* -----------------------------------------
+     AI HEADER
+  ----------------------------------------- */
+
+  .nova-ai-message-header {
+    gap: 8px;
+
+    margin-bottom: 9px;
+  }
+
+
+  .nova-ai-avatar {
+    width: 29px;
+    height: 29px;
+
+    flex-basis: 29px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+  }
+
+
+  .nova-ai-name {
+    font-size: 11px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 450px) {
+
+  /* -----------------------------------------
+     USER MESSAGE
+  ----------------------------------------- */
+
+  .nova-user-message-bubble {
+    max-width: 91%;
+
+    padding: 9px 11px;
+
+    border-radius:
+      14px
+      14px
+      5px
+      14px;
+  }
+
+
+  .nova-user-message-content {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+
+  /* -----------------------------------------
+     EDIT
+  ----------------------------------------- */
+
+  .nova-edit-message-box {
+    width: 91%;
+
+    padding: 8px;
+
+    border-radius: 14px;
+  }
+
+
+  .nova-edit-message-box textarea {
+    min-height: 78px;
+
+    max-height: 180px;
+
+    font-size: 13px;
+  }
+
+
+  .nova-edit-message-actions {
+    gap: 5px;
+  }
+
+
+  .nova-edit-cancel-btn,
+  .nova-edit-save-btn {
+    height: 31px;
+
+    padding: 0 9px;
+
+    font-size: 10px;
+  }
+
+
+  /* -----------------------------------------
+     AI CONTENT
+  ----------------------------------------- */
+
+  .nova-ai-message-content {
+    font-size: 13px;
+
+    line-height: 1.62;
+  }
+
+
+  .nova-ai-message-content h1 {
+    font-size: 20px;
+  }
+
+  .nova-ai-message-content h2 {
+    font-size: 17px;
+  }
+
+  .nova-ai-message-content h3 {
+    font-size: 15px;
+  }
+
+
+  /* -----------------------------------------
+     TABLE
+  ----------------------------------------- */
+
+  .nova-ai-message-content table {
+    font-size: 11px;
+  }
+
+
+  .nova-ai-message-content th,
+  .nova-ai-message-content td {
+    min-width: 80px;
+
+    padding: 6px 8px;
+  }
+
+
+  /* -----------------------------------------
+     CODE
+  ----------------------------------------- */
+
+  .nova-ai-message-content pre {
+    border-radius: 9px;
+
+    margin: 10px 0;
+  }
+
+
+  /* -----------------------------------------
+     ACTIONS
+  ----------------------------------------- */
+
+  .nova-message-actions {
+    gap: 2px;
+  }
+
+
+  .nova-message-action-btn,
+  .nova-message-action-icon {
+    width: 29px;
+    height: 29px;
+
+    border-radius: 7px;
+  }
+
+
+  .nova-message-action-icon {
+    font-size: 13px;
+  }
+
+
+  /* -----------------------------------------
+     AI HEADER
+  ----------------------------------------- */
+
+  .nova-ai-message-header {
+    margin-bottom: 8px;
+  }
+
+
+  .nova-ai-avatar {
+    width: 28px;
+    height: 28px;
+
+    flex-basis: 28px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   e.g. 320px - 375px
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .nova-user-message-bubble {
+    max-width: 94%;
+
+    padding: 8px 10px;
+  }
+
+
+  .nova-edit-message-box {
+    width: 94%;
+  }
+
+
+  .nova-user-message-content,
+  .nova-ai-message-content {
+    font-size: 12.5px;
+  }
+
+
+  .nova-message-action-btn,
+  .nova-message-action-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+
+  .nova-message-action-icon {
+    font-size: 12px;
+  }
+
+
+  .nova-ai-avatar {
+    width: 27px;
+    height: 27px;
+
+    flex-basis: 27px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE OVERFLOW SAFETY
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .nova-user-message-wrapper,
+  .nova-ai-message-wrapper,
+  .nova-ai-message,
+  .nova-ai-message-content,
+  .nova-user-message-content {
+    overflow-x: hidden;
+  }
+
+
+  /* Don't allow markdown elements to push page width */
+
+  .nova-ai-message-content img,
+  .nova-user-message-content img {
+    max-width: 100%;
+    height: auto;
+  }
+
+
+  .nova-ai-message-content hr,
+  .nova-user-message-content hr {
+    max-width: 100%;
+  }
+
+}

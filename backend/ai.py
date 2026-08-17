@@ -20,7 +20,7 @@ gemini_client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 # ==========================================
 # Normal Chat (Groq)
@@ -203,4 +203,3 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-print("KEY =", repr(os.getenv("GEMINI_API_KEY")))

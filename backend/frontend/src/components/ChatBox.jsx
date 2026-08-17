@@ -789,7 +789,7 @@ export default function ChatBox({ chat, loading }) {
         localStorage.getItem("token");
 
       const response = await fetch(
-        "http://127.0.0.1:8000/chat/stream",
+        "https://nova-ai-five-orpin.vercel.app/api/chat/stream",
         {
           method: "POST",
           headers: {

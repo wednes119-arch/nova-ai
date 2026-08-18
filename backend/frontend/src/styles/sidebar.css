@@ -6,6 +6,7 @@
   width: 280px;
   min-width: 280px;
   height: 100vh;
+  height: 100dvh;
 
   display: flex;
   flex-direction: column;
@@ -94,7 +95,7 @@
 
 
 /* =========================================================
-   MOBILE CLOSE BUTTON
+   MOBILE CLOSE
 ========================================================= */
 
 .mobile-close-btn {
@@ -113,10 +114,6 @@
   color: #aeb7b3;
 
   cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
 }
 
 .mobile-close-btn:hover {
@@ -158,10 +155,7 @@
 
   cursor: pointer;
 
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .new-chat-btn:hover {
@@ -221,10 +215,6 @@
 
   font-family: inherit;
   font-size: 13px;
-
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
 }
 
 .search-input::placeholder {
@@ -280,15 +270,13 @@
 ========================================================= */
 
 .chat-list {
-  flex: 1;
+  flex: 1 1 auto;
 
   min-height: 0;
 
   overflow-y: auto;
 
   padding: 3px 12px 15px;
-
-  box-sizing: border-box;
 }
 
 .chat-list::-webkit-scrollbar {
@@ -302,10 +290,6 @@
 .chat-list::-webkit-scrollbar-thumb {
   background: #343b38;
   border-radius: 10px;
-}
-
-.chat-list::-webkit-scrollbar-thumb:hover {
-  background: #46504b;
 }
 
 
@@ -336,10 +320,6 @@
   background: transparent;
 
   cursor: pointer;
-
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
 }
 
 .chat-item:hover {
@@ -400,7 +380,6 @@
   color: #d9dddb;
 
   font-size: 13px;
-  line-height: 1.4;
 }
 
 .chat-item.active .chat-title span {
@@ -410,12 +389,11 @@
 
 
 /* =========================================================
-   CHAT MENU
+   MENU
 ========================================================= */
 
 .chat-menu {
   position: relative;
-
   flex-shrink: 0;
 }
 
@@ -440,10 +418,7 @@
 
   opacity: 0;
 
-  transition:
-    opacity 0.18s ease,
-    background 0.18s ease,
-    color 0.18s ease;
+  transition: 0.18s ease;
 }
 
 .chat-item:hover .menu-button,
@@ -481,7 +456,7 @@
   box-shadow:
     0 12px 30px rgba(0, 0, 0, 0.35);
 
-  z-index: 1000;
+  z-index: 5000;
 }
 
 .menu-dropdown button {
@@ -517,10 +492,6 @@
   color: #f87171;
 }
 
-.menu-dropdown .delete-option:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
 
 /* =========================================================
    RENAME
@@ -548,7 +519,7 @@
 
 
 /* =========================================================
-   EMPTY CHAT
+   EMPTY
 ========================================================= */
 
 .empty-chat {
@@ -580,7 +551,13 @@
 ========================================================= */
 
 .sidebar-bottom {
-  margin-top: auto;
+  flex: 0 0 auto;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  margin-top: 0;
 
   padding: 14px 18px 18px;
 
@@ -588,7 +565,9 @@
 
   background: #151817;
 
-  flex-shrink: 0;
+  position: relative;
+
+  z-index: 20;
 }
 
 
@@ -622,11 +601,7 @@
 
   cursor: pointer;
 
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .settings-btn:hover {
@@ -667,19 +642,13 @@
 
   cursor: pointer;
 
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .logout-btn:hover {
   background: #ef4444;
   border-color: #ef4444;
   color: #ffffff;
-
-  transform: translateY(-1px);
 }
 
 
@@ -730,8 +699,6 @@
 
   box-shadow:
     0 25px 70px rgba(0, 0, 0, 0.45);
-
-  animation: popup 0.2s ease;
 }
 
 .delete-modal-icon {
@@ -752,7 +719,6 @@
 
 .delete-modal h2 {
   margin: 0 0 9px;
-
   font-size: 19px;
 }
 
@@ -772,7 +738,6 @@
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-
   gap: 9px;
 }
 
@@ -799,36 +764,11 @@
   color: #d2d7d4;
 }
 
-.cancel-btn:hover {
-  background: #343b38;
-}
-
 .delete-btn {
   border: 1px solid #ef4444;
 
   background: #ef4444;
   color: #ffffff;
-}
-
-.delete-btn:hover {
-  background: #dc2626;
-}
-
-
-/* =========================================================
-   ANIMATION
-========================================================= */
-
-@keyframes popup {
-  from {
-    opacity: 0;
-    transform: scale(0.94) translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 
@@ -850,10 +790,6 @@
 
 @media (max-width: 700px) {
 
-  /* -------------------------------------------------------
-     SIDEBAR DRAWER
-  ------------------------------------------------------- */
-
   .sidebar {
     position: fixed;
 
@@ -861,15 +797,16 @@
     left: 0;
     bottom: 0;
 
-    width: min(82vw, 300px);
+    width: min(84vw, 310px);
     min-width: 0;
 
+    height: 100vh;
     height: 100dvh;
-
-    transform: translateX(-105%);
 
     display: flex;
     flex-direction: column;
+
+    transform: translateX(-105%);
 
     transition:
       transform 0.28s cubic-bezier(
@@ -883,32 +820,22 @@
       12px 0 35px rgba(0, 0, 0, 0.35);
 
     z-index: 2000;
-
-    overflow: hidden;
   }
-
-
-  /* -------------------------------------------------------
-     OPEN
-  ------------------------------------------------------- */
 
   .sidebar.sidebar-open {
     transform: translateX(0);
   }
 
 
-  /* -------------------------------------------------------
-     CLOSE BUTTON
-  ------------------------------------------------------- */
+  /* CLOSE */
 
   .mobile-close-btn {
     display: flex;
+    flex-shrink: 0;
   }
 
 
-  /* -------------------------------------------------------
-     OVERLAY
-  ------------------------------------------------------- */
+  /* OVERLAY */
 
   .sidebar-overlay {
     display: block;
@@ -922,156 +849,169 @@
     backdrop-filter: blur(3px);
 
     z-index: 1999;
-
-    animation: overlayFade 0.25s ease;
   }
 
 
-  /* -------------------------------------------------------
-     HEADER
-  ------------------------------------------------------- */
+  /* HEADER */
 
   .sidebar-header {
     padding: 20px 17px 16px;
-
     flex-shrink: 0;
   }
 
 
-  /* -------------------------------------------------------
-     NEW CHAT
-  ------------------------------------------------------- */
+  /* NEW CHAT */
 
   .sidebar-new-chat {
-    padding-left: 14px;
-    padding-right: 14px;
-
+    padding: 0 14px 14px;
     flex-shrink: 0;
   }
 
+  .new-chat-btn {
+    height: 44px;
+  }
 
-  /* -------------------------------------------------------
-     SEARCH
-  ------------------------------------------------------- */
+
+  /* SEARCH */
 
   .search-wrapper {
-    margin-left: 14px;
-    margin-right: 14px;
-
+    margin: 0 14px 14px;
     flex-shrink: 0;
   }
 
 
-  /* -------------------------------------------------------
-     CHAT HEADER
-  ------------------------------------------------------- */
+  /* CHAT HEADER */
 
   .chat-list-header {
-    padding-left: 17px;
-    padding-right: 17px;
-
+    padding: 0 17px 9px;
     flex-shrink: 0;
   }
 
 
-  /* -------------------------------------------------------
-     CHAT LIST
-     
-     IMPORTANT:
-     It takes remaining available height.
-  ------------------------------------------------------- */
+  /* CHAT LIST */
 
   .chat-list {
-    flex: 1;
+    /*
+      IMPORTANT:
+      Chat list will scroll only inside this area.
+      Bottom buttons will NEVER be pushed outside.
+    */
+
+    flex: 1 1 0;
 
     min-height: 0;
 
+    overflow-x: hidden;
     overflow-y: auto;
 
-    padding-left: 10px;
-    padding-right: 10px;
-
-    /* Space for bottom buttons */
-    padding-bottom: 155px;
+    padding: 3px 10px 12px;
   }
 
 
-  /* -------------------------------------------------------
-     CHAT MENU
-  ------------------------------------------------------- */
+  /* BOTTOM */
 
-  .menu-button {
+  .sidebar-bottom {
+    /*
+      IMPORTANT FIX
+    */
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 0 0 auto;
+
+    width: 100%;
+
+    padding:
+      12px
+      14px
+      max(16px, env(safe-area-inset-bottom));
+
+    border-top: 1px solid #303633;
+
+    background: #151817;
+
+    box-sizing: border-box;
+
+    visibility: visible;
     opacity: 1;
   }
 
 
-  /* -------------------------------------------------------
-     MOBILE BOTTOM ACTIONS
-     
-     SETTINGS + LOGOUT ALWAYS VISIBLE
-  ------------------------------------------------------- */
-
-  .sidebar-bottom {
-    position: absolute;
-
-    left: 0;
-    right: 0;
-    bottom: 0;
+  .settings-btn,
+  .logout-btn {
+    display: flex;
 
     width: 100%;
 
-    box-sizing: border-box;
+    flex: 0 0 42px;
 
-    margin: 0;
+    min-height: 42px;
 
-    padding: 12px 14px 16px;
-
-    border-top: 1px solid #252b28;
-
-    background: #151817;
-
-    flex-shrink: 0;
-
-    z-index: 50;
-
-    box-shadow:
-      0 -10px 25px rgba(0, 0, 0, 0.18);
+    visibility: visible;
+    opacity: 1;
   }
 
-
-  /* -------------------------------------------------------
-     SETTINGS
-  ------------------------------------------------------- */
 
   .settings-btn {
-    width: 100%;
-    height: 42px;
-
-    margin-bottom: 10px;
+    margin-bottom: 9px;
   }
 
 
-  /* -------------------------------------------------------
-     LOGOUT
-  ------------------------------------------------------- */
+  /* CHAT MENU ALWAYS VISIBLE ON MOBILE */
 
-  .logout-btn {
-    width: 100%;
-    height: 42px;
+  .menu-button {
+    opacity: 1;
   }
 }
 
 
 /* =========================================================
-   OVERLAY ANIMATION
+   VERY SMALL PHONES
 ========================================================= */
 
-@keyframes overlayFade {
-  from {
-    opacity: 0;
+@media (max-width: 380px) {
+
+  .sidebar {
+    width: 88vw;
   }
 
-  to {
-    opacity: 1;
+  .sidebar-header {
+    padding: 16px 14px 13px;
+  }
+
+  .sidebar-brand h1 {
+    font-size: 18px;
+  }
+
+  .brand-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .sidebar-new-chat {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .search-wrapper {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .chat-list-header {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .chat-list {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .sidebar-bottom {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }

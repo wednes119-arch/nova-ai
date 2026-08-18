@@ -839,3 +839,103 @@
 .settings-btn svg {
   font-size: 17px;
 }
+
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 14px 18px 18px;
+  border-top: 1px solid #252b28;
+  background: #151817;
+  flex-shrink: 0;
+}
+
+.settings-btn {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  margin: 0 0 10px;
+  padding: 0;
+
+  border: 1px solid #343b38;
+  border-radius: 10px;
+
+  background: #202422;
+  color: #d1d5d2;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.settings-btn:hover {
+  background: #292f2c;
+  border-color: #414b46;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.settings-btn svg {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.logout-btn {
+  width: 100%;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  padding: 0;
+
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: 10px;
+
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.logout-btn svg {
+  font-size: 17px;
+}

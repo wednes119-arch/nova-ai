@@ -7,6 +7,8 @@
   height: 70px;
   min-height: 70px;
 
+  width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,6 +18,8 @@
   position: relative;
   z-index: 20;
 
+  box-sizing: border-box;
+
   background:
     linear-gradient(
       180deg,
@@ -23,7 +27,8 @@
       rgba(255, 255, 255, 0.94)
     );
 
-  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  border-bottom:
+    1px solid rgba(226, 232, 240, 0.85);
 
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.8),
@@ -40,7 +45,7 @@
 
 
 /* =====================================================
-   DARK THEME — NAVBAR
+   DARK THEME
 ===================================================== */
 
 html[data-theme="dark"] .navbar {
@@ -114,12 +119,22 @@ html[data-theme="dark"] .navbar::before {
   min-width: 0;
 
   display: flex;
-  flex-direction: column;
+  align-items: center;
 
-  justify-content: center;
+  gap: 12px;
 
   animation:
     navbarContentIn 0.45s ease;
+}
+
+
+.navbar-left-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
 }
 
 
@@ -269,6 +284,8 @@ html[data-theme="dark"] .subtitle-icon {
 
   gap: 14px;
 
+  flex-shrink: 0;
+
   animation:
     navbarContentIn 0.45s ease 0.08s both;
 }
@@ -301,6 +318,8 @@ html[data-theme="dark"] .subtitle-icon {
 
   font-weight: 550;
 
+  white-space: nowrap;
+
   transition:
     background 0.25s ease,
     border-color 0.25s ease,
@@ -308,8 +327,6 @@ html[data-theme="dark"] .subtitle-icon {
     transform 0.25s ease;
 }
 
-
-/* DARK STATUS */
 
 html[data-theme="dark"] .navbar-status {
   background:
@@ -333,14 +350,11 @@ html[data-theme="dark"] .navbar-status {
 
 
 html[data-theme="dark"] .navbar-status:hover {
-  background:
-    #14231e !important;
+  background: #14231e !important;
 
-  border-color:
-    #3f725e !important;
+  border-color: #3f725e !important;
 
-  color:
-    #b8cec4 !important;
+  color: #b8cec4 !important;
 }
 
 
@@ -351,6 +365,8 @@ html[data-theme="dark"] .navbar-status:hover {
 .status-pulse {
   width: 7px;
   height: 7px;
+
+  flex: 0 0 7px;
 
   border-radius: 50%;
 
@@ -467,6 +483,78 @@ html[data-theme="dark"] .status-pulse {
 
 
 /* =====================================================
+   MOBILE MENU BUTTON
+===================================================== */
+
+.mobile-menu-btn {
+  display: none;
+
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border:
+    1px solid #dce5e1;
+
+  border-radius: 10px;
+
+  background:
+    #f8faf9;
+
+  color:
+    #52625b;
+
+  cursor: pointer;
+
+  font-size: 19px;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.mobile-menu-btn:hover {
+  background: #eef5f1;
+
+  border-color: #c9d9d2;
+
+  color: #398e6d;
+}
+
+
+.mobile-menu-btn:active {
+  transform: scale(0.94);
+}
+
+
+html[data-theme="dark"] .mobile-menu-btn {
+  background: #14231e;
+
+  border-color: #304c41;
+
+  color: #a7bdb4;
+}
+
+
+html[data-theme="dark"] .mobile-menu-btn:hover {
+  background: #1b3028;
+
+  border-color: #416a59;
+
+  color: #52b894;
+}
+
+
+/* =====================================================
    ANIMATIONS
 ===================================================== */
 
@@ -552,7 +640,24 @@ html[data-theme="dark"] .status-pulse {
 
 
 /* =====================================================
-   RESPONSIVE
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+  .navbar {
+    padding: 0 20px;
+  }
+
+  .navbar-title {
+    max-width: 45vw;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
 ===================================================== */
 
 @media (max-width: 700px) {
@@ -564,11 +669,34 @@ html[data-theme="dark"] .status-pulse {
     padding: 0 18px;
   }
 
+
+  /* Show hamburger */
+
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+
+  .navbar-left {
+    gap: 10px;
+
+    flex: 1;
+
+    min-width: 0;
+  }
+
+
+  .navbar-left-content {
+    min-width: 0;
+  }
+
+
   .navbar-title {
     font-size: 17px;
 
     max-width: 45vw;
   }
+
 
   .navbar-subtitle {
     font-size: 11px;
@@ -576,9 +704,11 @@ html[data-theme="dark"] .status-pulse {
     margin-top: 3px;
   }
 
+
   .navbar-status {
     display: none;
   }
+
 
   .user-avatar {
     width: 38px;
@@ -592,21 +722,45 @@ html[data-theme="dark"] .status-pulse {
 }
 
 
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
 @media (max-width: 450px) {
 
   .navbar {
     padding: 0 14px;
   }
 
+
+  .navbar-left {
+    gap: 8px;
+  }
+
+
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+
+    flex-basis: 36px;
+
+    border-radius: 9px;
+
+    font-size: 18px;
+  }
+
+
   .navbar-title {
-    max-width: 55vw;
+    max-width: 48vw;
 
     font-size: 16px;
   }
 
+
   .navbar-subtitle {
     display: none;
   }
+
 
   .nova-status-dot {
     width: 7px;
@@ -615,11 +769,50 @@ html[data-theme="dark"] .status-pulse {
     flex-basis: 7px;
   }
 
+
   .user-avatar {
     width: 36px;
     height: 36px;
 
     flex-basis: 36px;
+
+    font-size: 14px;
+  }
+
+}
+
+
+/* =====================================================
+   VERY SMALL DEVICES
+===================================================== */
+
+@media (max-width: 360px) {
+
+  .navbar {
+    padding: 0 10px;
+  }
+
+
+  .navbar-title {
+    max-width: 42vw;
+
+    font-size: 15px;
+  }
+
+
+  .mobile-menu-btn {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
+  }
+
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
   }
 
 }

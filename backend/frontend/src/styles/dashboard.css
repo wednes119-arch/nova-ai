@@ -1,6 +1,31 @@
 /* =====================================================
    NOVA AI — PREMIUM DASHBOARD
+   RESPONSIVE + MOBILE SIDEBAR DRAWER
 ===================================================== */
+
+
+/* =====================================================
+   GLOBAL
+===================================================== */
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+
+body.mobile-sidebar-open {
+  overflow: hidden;
+}
 
 
 /* =====================================================
@@ -12,6 +37,11 @@
 
   width: 100%;
   height: 100vh;
+  height: 100dvh;
+
+  overflow: hidden;
+
+  position: relative;
 
   background:
     radial-gradient(
@@ -26,8 +56,6 @@
     ),
     #f7f9fb;
 
-  overflow: hidden;
-
   color: #17211d;
 
   font-family:
@@ -40,7 +68,7 @@
 
 
 /* =====================================================
-   SIDEBAR AREA
+   SIDEBAR
 ===================================================== */
 
 .dashboard-sidebar {
@@ -48,19 +76,20 @@
   min-width: 290px;
 
   height: 100vh;
+  height: 100dvh;
 
   flex-shrink: 0;
 
-  overflow: hidden;
-
   position: relative;
 
-  z-index: 20;
+  z-index: 100;
+
+  overflow: hidden;
 }
 
 
 /* =====================================================
-   MAIN AREA
+   MAIN
 ===================================================== */
 
 .dashboard-main {
@@ -68,6 +97,8 @@
 
   min-width: 0;
   min-height: 0;
+
+  height: 100%;
 
   display: flex;
   flex-direction: column;
@@ -106,7 +137,7 @@
 
 
 /* =====================================================
-   PREMIUM TOP GLOW
+   TOP ACCENT
 ===================================================== */
 
 .dashboard-right::before {
@@ -143,28 +174,136 @@
 .chat-container {
   flex: 1;
 
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
 
-  background:
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(79, 169, 135, 0.035),
-      transparent 32%
-    ),
-    #f8fafc;
+  position: relative;
+
+  isolation: isolate;
 
   overflow: hidden;
 
-  position: relative;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(79, 169, 135, 0.10),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 75%,
+      rgba(79, 140, 255, 0.08),
+      transparent 32%
+    ),
+    #f8fafc;
 }
 
 
 /* =====================================================
-   MESSAGES AREA
+   AMBIENT GLOW
+===================================================== */
+
+.chat-container::before,
+.chat-container::after {
+  content: "";
+
+  position: absolute;
+
+  width: 420px;
+  height: 420px;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(70px);
+
+  opacity: 0.45;
+
+  z-index: -2;
+}
+
+
+.chat-container::before {
+  top: -180px;
+  left: 15%;
+
+  background:
+    rgba(79, 169, 135, 0.16);
+
+  animation:
+    novaGlowOne
+    12s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.chat-container::after {
+  right: -160px;
+  bottom: -180px;
+
+  background:
+    rgba(79, 140, 255, 0.12);
+
+  animation:
+    novaGlowTwo
+    15s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+@keyframes novaGlowOne {
+
+  0% {
+    transform:
+      translate3d(0, 0, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(120px, 80px, 0)
+      scale(1.15);
+  }
+
+  100% {
+    transform:
+      translate3d(-50px, 140px, 0)
+      scale(0.9);
+  }
+}
+
+
+@keyframes novaGlowTwo {
+
+  0% {
+    transform:
+      translate3d(0, 0, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(-100px, -100px, 0)
+      scale(1.2);
+  }
+
+  100% {
+    transform:
+      translate3d(-180px, 30px, 0)
+      scale(0.9);
+  }
+}
+
+
+/* =====================================================
+   MESSAGES
 ===================================================== */
 
 .messages-area {
@@ -172,7 +311,10 @@
 
   min-height: 0;
 
+  position: relative;
+
   overflow-y: auto;
+  overflow-x: hidden;
 
   padding:
     34px
@@ -182,59 +324,191 @@
   scroll-behavior: smooth;
 
   scrollbar-width: thin;
-  scrollbar-color: #cbd5d1 transparent;
+
+  scrollbar-color:
+    #cbd5d1
+    transparent;
+
+  z-index: 1;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.75),
+      transparent 45%
+    );
 }
 
 
 /* =====================================================
-   PREMIUM SCROLLBAR
+   GRID
+===================================================== */
+
+.messages-area::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: -1;
+
+  opacity: 0.20;
+
+  background-image:
+    linear-gradient(
+      rgba(79, 169, 135, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(79, 169, 135, 0.045) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    55px 55px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black 15%,
+      black 80%,
+      transparent
+    );
+
+  animation:
+    gridMove
+    25s
+    linear
+    infinite;
+}
+
+
+@keyframes gridMove {
+
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      55px 55px,
+      55px 55px;
+  }
+}
+
+
+/* =====================================================
+   LIGHT BEAM
+===================================================== */
+
+.messages-area::after {
+  content: "";
+
+  position: absolute;
+
+  width: 600px;
+  height: 180px;
+
+  top: 20%;
+  left: 50%;
+
+  transform:
+    translateX(-50%)
+    rotate(-8deg);
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(79, 169, 135, 0.035),
+      transparent
+    );
+
+  filter: blur(25px);
+
+  animation:
+    lightBeam
+    9s
+    ease-in-out
+    infinite;
+
+  z-index: -1;
+}
+
+
+@keyframes lightBeam {
+
+  0%,
+  100% {
+    opacity: 0.2;
+
+    transform:
+      translateX(-60%)
+      rotate(-8deg);
+  }
+
+  50% {
+    opacity: 0.8;
+
+    transform:
+      translateX(-40%)
+      rotate(-8deg);
+  }
+}
+
+
+/* =====================================================
+   SCROLLBAR
 ===================================================== */
 
 .messages-area::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
+
 
 .messages-area::-webkit-scrollbar-track {
   background: transparent;
 }
 
+
 .messages-area::-webkit-scrollbar-thumb {
   background:
-    linear-gradient(
-      180deg,
-      #cbd5d1,
-      #b8c9c2
-    );
+    rgba(79, 169, 135, 0.25);
 
   border-radius: 20px;
-
-  border: 2px solid transparent;
-
-  background-clip: padding-box;
 }
+
 
 .messages-area::-webkit-scrollbar-thumb:hover {
   background:
-    linear-gradient(
-      180deg,
-      #aebfb8,
-      #94aaa1
-    );
-
-  background-clip: padding-box;
+    rgba(79, 169, 135, 0.45);
 }
 
 
 /* =====================================================
-   MESSAGE ENTRY
+   MESSAGE ANIMATION
 ===================================================== */
 
 .user-message-wrapper,
 .ai-message {
   animation:
-    messageSlideIn
-    0.48s
-    cubic-bezier(0.22, 1, 0.36, 1);
+    novaMessageIn
+    0.5s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    );
 
   will-change:
     transform,
@@ -242,23 +516,97 @@
 }
 
 
-@keyframes messageSlideIn {
+@keyframes novaMessageIn {
 
-  0% {
+  from {
     opacity: 0;
 
     transform:
-      translateY(16px)
-      scale(0.985);
+      translateY(18px)
+      scale(0.97);
+
+    filter:
+      blur(4px);
   }
 
-  100% {
+  to {
     opacity: 1;
 
     transform:
       translateY(0)
       scale(1);
+
+    filter:
+      blur(0);
   }
+}
+
+
+/* =====================================================
+   AI MESSAGE
+===================================================== */
+
+.ai-message {
+  background:
+    rgba(255, 255, 255, 0.88);
+
+  border:
+    1px solid
+    rgba(79, 169, 135, 0.18);
+
+  box-shadow:
+    0 10px 35px
+    rgba(15, 23, 42, 0.055);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+
+.ai-message:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(79, 169, 135, 0.30);
+
+  box-shadow:
+    0 15px 40px
+    rgba(15, 23, 42, 0.08);
+}
+
+
+.ai-message p {
+  color: #334155;
+
+  line-height: 1.8;
+}
+
+
+.ai-message strong,
+.ai-message b {
+  color: #17211d;
+
+  font-weight: 650;
+}
+
+
+.ai-message h1,
+.ai-message h2,
+.ai-message h3,
+.ai-message h4 {
+  color: #17211d;
+
+  letter-spacing:
+    -0.015em;
 }
 
 
@@ -270,8 +618,8 @@
   background:
     linear-gradient(
       135deg,
-      #5ab092 0%,
-      #49a481 100%
+      #5ab092,
+      #49a481
     );
 
   color: #ffffff;
@@ -281,12 +629,12 @@
     rgba(255, 255, 255, 0.14);
 
   box-shadow:
-    0 8px 24px
-    rgba(60, 150, 116, 0.15);
+    0 8px 25px
+    rgba(72, 164, 129, 0.15);
 
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 
@@ -295,82 +643,8 @@
     translateY(-2px);
 
   box-shadow:
-    0 12px 30px
-    rgba(60, 150, 116, 0.21);
-}
-
-
-/* =====================================================
-   AI MESSAGE
-===================================================== */
-
-.ai-message {
-  background:
-    rgba(255, 255, 255, 0.92);
-
-  border:
-    1px solid
-    rgba(218, 226, 223, 0.9);
-
-  box-shadow:
-    0 5px 20px
-    rgba(15, 23, 42, 0.045);
-
-  backdrop-filter:
-    blur(8px);
-
-  -webkit-backdrop-filter:
-    blur(8px);
-
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
-}
-
-
-.ai-message:hover {
-  transform:
-    translateY(-2px);
-
-  border-color:
-    rgba(79, 169, 135, 0.22);
-
-  box-shadow:
-    0 12px 30px
-    rgba(15, 23, 42, 0.07);
-}
-
-
-/* =====================================================
-   AI MESSAGE TEXT
-===================================================== */
-
-.ai-message p {
-  color: #334155;
-
-  line-height: 1.8;
-}
-
-
-.ai-message strong {
-  color: #17211d;
-
-  font-weight: 650;
-}
-
-
-/* =====================================================
-   AI HEADINGS
-===================================================== */
-
-.ai-message h1,
-.ai-message h2,
-.ai-message h3,
-.ai-message h4 {
-  color: #17211d;
-
-  letter-spacing: -0.015em;
+    0 12px 32px
+    rgba(72, 164, 129, 0.22);
 }
 
 
@@ -417,29 +691,25 @@
     20px;
 
   background:
-    rgba(255, 255, 255, 0.88);
+    rgba(255, 255, 255, 0.90);
 
   border-top:
     1px solid
-    rgba(226, 232, 240, 0.85);
+    rgba(226, 232, 240, 0.8);
 
   box-shadow:
     0 -8px 30px
-    rgba(15, 23, 42, 0.025);
+    rgba(15, 23, 42, 0.035);
 
   backdrop-filter:
-    blur(14px);
+    blur(18px);
 
   -webkit-backdrop-filter:
-    blur(14px);
+    blur(18px);
 
   z-index: 50;
 }
 
-
-/* =====================================================
-   INPUT AREA TOP LIGHT
-===================================================== */
 
 .chat-input-area::before {
   content: "";
@@ -465,16 +735,16 @@
 
 
 /* =====================================================
-   CHAT INPUT
+   INPUT
 ===================================================== */
 
 .chat-input {
   flex: 1;
 
+  min-width: 0;
+
   min-height: 50px;
   max-height: 160px;
-
-  box-sizing: border-box;
 
   padding:
     14px
@@ -489,9 +759,12 @@
   background:
     rgba(255, 255, 255, 0.96);
 
-  color: #1e293b;
+  color:
+    #1e293b;
 
   outline: none;
+
+  resize: none;
 
   font-family: inherit;
 
@@ -499,22 +772,16 @@
 
   line-height: 1.5;
 
-  box-shadow:
-    inset 0 1px 2px
-    rgba(15, 23, 42, 0.025);
-
   transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    transform 0.2s ease;
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.25s ease;
 }
 
 
 .chat-input::placeholder {
-  color: #9aa7a2;
-
-  transition:
-    opacity 0.2s ease;
+  color:
+    #9aa7a2;
 }
 
 
@@ -524,29 +791,25 @@
 
   box-shadow:
     0 0 0 3px
-    rgba(79, 169, 135, 0.09),
-    0 6px 22px
-    rgba(79, 169, 135, 0.07);
+    rgba(79, 169, 135, 0.10),
+    0 8px 25px
+    rgba(79, 169, 135, 0.08);
 
   transform:
     translateY(-1px);
 }
 
 
-.chat-input:focus::placeholder {
-  opacity: 0.65;
-}
-
-
 /* =====================================================
-   ACTION BUTTONS
+   BUTTONS
 ===================================================== */
 
 .upload-btn,
 .send-btn {
+  flex-shrink: 0;
+
   transition:
-    transform 0.22s
-      cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.22s ease,
     background 0.22s ease,
     border-color 0.22s ease,
     box-shadow 0.22s ease,
@@ -554,48 +817,10 @@
 }
 
 
-/* =====================================================
-   UPLOAD / MIC / HEADPHONES
-===================================================== */
-
 .upload-btn {
   position: relative;
 
   overflow: hidden;
-}
-
-
-.upload-btn::after {
-  content: "";
-
-  position: absolute;
-
-  inset: 0;
-
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(79, 169, 135, 0.12),
-      transparent 65%
-    );
-
-  opacity: 0;
-
-  transform: scale(0.6);
-
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-
-  pointer-events: none;
-}
-
-
-.upload-btn:hover::after {
-  opacity: 1;
-
-  transform:
-    scale(1.15);
 }
 
 
@@ -609,35 +834,17 @@
 }
 
 
-/* =====================================================
-   SEND BUTTON
-===================================================== */
-
 .send-btn:not(:disabled) {
-  animation:
-    sendButtonAppear
-    0.3s
-    cubic-bezier(0.22, 1, 0.36, 1);
-}
+  background:
+    linear-gradient(
+      135deg,
+      #4fa987,
+      #398d6d
+    );
 
-
-@keyframes sendButtonAppear {
-
-  from {
-    opacity: 0;
-
-    transform:
-      scale(0.72)
-      rotate(-8deg);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      scale(1)
-      rotate(0);
-  }
+  box-shadow:
+    0 6px 20px
+    rgba(79, 169, 135, 0.20);
 }
 
 
@@ -646,12 +853,9 @@
     translateY(-2px)
     scale(1.05);
 
-  background:
-    #4fa987;
-
   box-shadow:
-    0 9px 24px
-    rgba(79, 169, 135, 0.28);
+    0 10px 28px
+    rgba(79, 169, 135, 0.30);
 }
 
 
@@ -660,10 +864,6 @@
     scale(0.92);
 }
 
-
-/* =====================================================
-   DISABLED SEND
-===================================================== */
 
 .send-btn:disabled {
   background:
@@ -678,7 +878,39 @@
 
 
 /* =====================================================
-   RECORDING BUTTON
+   FILE PREVIEW
+===================================================== */
+
+.upload-preview {
+  animation:
+    filePreviewIn
+    0.3s
+    ease;
+}
+
+
+@keyframes filePreviewIn {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =====================================================
+   RECORDING
 ===================================================== */
 
 .upload-btn.mic-recording {
@@ -713,141 +945,46 @@
 
 
 /* =====================================================
-   VOICE MODE
+   MOBILE OVERLAY
 ===================================================== */
 
-.voice-mode-active {
-  animation:
-    voiceActive
-    1.8s
-    ease-in-out
-    infinite alternate;
-}
+.mobile-sidebar-overlay {
+  display: none;
 
+  position: fixed;
 
-@keyframes voiceActive {
+  inset: 0;
 
-  from {
-    box-shadow:
-      0 4px 14px
-      rgba(79, 169, 135, 0.16);
-  }
+  background:
+    rgba(4, 10, 8, 0.58);
 
-  to {
-    box-shadow:
-      0 7px 22px
-      rgba(79, 169, 135, 0.32);
-  }
-}
+  backdrop-filter:
+    blur(3px);
 
+  -webkit-backdrop-filter:
+    blur(3px);
 
-/* =====================================================
-   FILE PREVIEW
-===================================================== */
+  z-index: 90;
 
-.upload-preview {
-  animation:
-    filePreviewIn
-    0.3s
-    cubic-bezier(0.22, 1, 0.36, 1);
-}
+  opacity: 0;
 
+  visibility: hidden;
 
-@keyframes filePreviewIn {
-
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(8px)
-      scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-  }
-}
-
-
-/* =====================================================
-   REMOVE FILE
-===================================================== */
-
-.remove-file {
   transition:
-    transform 0.2s ease,
-    color 0.2s ease;
+    opacity 0.28s ease,
+    visibility 0.28s ease;
 }
 
 
-.remove-file:hover {
-  transform:
-    rotate(8deg)
-    scale(1.12);
-}
+.mobile-sidebar-overlay.show {
+  opacity: 1;
 
-
-/* =====================================================
-   LOADING / EMPTY
-===================================================== */
-
-.chat-loading,
-.chat-empty {
-  animation:
-    dashboardFadeIn
-    0.5s
-    ease;
-}
-
-
-@keyframes dashboardFadeIn {
-
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0);
-  }
+  visibility: visible;
 }
 
 
 /* =====================================================
-   SUBTLE PAGE ENTRY
-===================================================== */
-
-.dashboard-main {
-  animation:
-    mainAreaAppear
-    0.35s
-    ease-out;
-}
-
-
-@keyframes mainAreaAppear {
-
-  from {
-    opacity: 0.85;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-
-/* =====================================================
-   MOBILE / TABLET
+   TABLET
 ===================================================== */
 
 @media (max-width: 1100px) {
@@ -870,65 +1007,110 @@
 
 
 /* =====================================================
-   TABLET
+   MOBILE / TABLET DRAWER
 ===================================================== */
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
+
+  .dashboard {
+    display: block;
+
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+
+    overflow: hidden;
+  }
+
+
+  /* -----------------------------
+     SIDEBAR DRAWER
+  ----------------------------- */
 
   .dashboard-sidebar {
-    width: 235px;
-    min-width: 235px;
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: min(82vw, 320px);
+    min-width: 0;
+
+    height: 100vh;
+    height: 100dvh;
+
+    z-index: 100;
+
+    transform:
+      translateX(-105%);
+
+    transition:
+      transform 0.32s
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+
+    box-shadow:
+      12px 0 40px
+      rgba(0, 0, 0, 0.16);
   }
+
+
+  .dashboard-sidebar.mobile-open {
+    transform:
+      translateX(0);
+  }
+
+
+  /* -----------------------------
+     OVERLAY
+  ----------------------------- */
+
+  .mobile-sidebar-overlay {
+    display: block;
+  }
+
+
+  /* -----------------------------
+     MAIN
+  ----------------------------- */
+
+  .dashboard-main {
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+  }
+
+
+  .dashboard-right {
+    width: 100%;
+    height: 100%;
+  }
+
+
+  /* -----------------------------
+     CHAT
+  ----------------------------- */
 
   .messages-area {
     padding:
-      25px
-      20px
+      24px
+      18px
       120px;
   }
 
+
   .chat-input-area {
+    gap: 7px;
+
     padding:
+      11px
       12px
-      18px
-      16px;
-  }
-}
-
-
-/* =====================================================
-   MOBILE
-===================================================== */
-
-@media (max-width: 700px) {
-
-  .dashboard-sidebar {
-    width: 210px;
-    min-width: 210px;
-  }
-
-  .messages-area {
-    padding:
-      20px
-      14px
-      115px;
-  }
-
-  .chat-input-area {
-    gap: 6px;
-
-    padding:
-      10px
-      10px
-      13px;
-  }
-
-  .ai-message {
-    width: 94% !important;
-  }
-
-  .message.user-message {
-    max-width: 88% !important;
+      calc(12px + env(safe-area-inset-bottom));
   }
 }
 
@@ -940,16 +1122,17 @@
 @media (max-width: 600px) {
 
   .dashboard-sidebar {
-    width: 190px;
-    min-width: 190px;
+    width: min(86vw, 310px);
   }
+
 
   .messages-area {
     padding:
-      16px
-      10px
-      105px;
+      18px
+      12px
+      115px;
   }
+
 
   .chat-input-area {
     gap: 5px;
@@ -957,8 +1140,9 @@
     padding:
       8px
       8px
-      10px;
+      calc(10px + env(safe-area-inset-bottom));
   }
+
 
   .chat-input {
     min-height: 44px;
@@ -972,6 +1156,7 @@
     font-size: 14px;
   }
 
+
   .upload-btn {
     width: 42px;
     height: 42px;
@@ -979,512 +1164,346 @@
     flex-basis: 42px;
   }
 
+
   .send-btn {
     width: 44px;
     height: 44px;
 
     flex-basis: 44px;
   }
-}
 
 
-/* =====================================================
-   REDUCE MOTION
-===================================================== */
+  .ai-message {
+    width: 94% !important;
+  }
 
-@media (prefers-reduced-motion: reduce) {
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-
-    scroll-behavior: auto !important;
-
-    transition-duration: 0.01ms !important;
+  .message.user-message {
+    max-width: 88% !important;
   }
 }
 
 
 /* =====================================================
-   PREMIUM NOVA AI — ANIMATED BACKGROUND
+   VERY SMALL MOBILE
 ===================================================== */
 
-.chat-container {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+@media (max-width: 400px) {
 
+  .dashboard-sidebar {
+    width: 88vw;
+  }
+
+
+  .messages-area {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+
+  .chat-input-area {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+
+/* =====================================================
+   DARK THEME
+===================================================== */
+
+html[data-theme="dark"] .dashboard {
+  background:
+    #07110e !important;
+
+  color:
+    #e8f2ee !important;
+}
+
+
+html[data-theme="dark"] .dashboard-main {
+  background:
+    #07110e !important;
+}
+
+
+html[data-theme="dark"] .dashboard-right {
+  background:
+    radial-gradient(
+      circle at 75% 10%,
+      rgba(82, 184, 148, 0.055),
+      transparent 32%
+    ),
+    #07110e !important;
+}
+
+
+html[data-theme="dark"] .chat-container {
   background:
     radial-gradient(
       circle at 15% 20%,
-      rgba(79, 169, 135, 0.10),
+      rgba(82, 184, 148, 0.075),
       transparent 30%
     ),
     radial-gradient(
       circle at 85% 75%,
-      rgba(79, 140, 255, 0.08),
+      rgba(79, 140, 255, 0.035),
       transparent 32%
     ),
-    #f8fafc;
+    #07110e !important;
 }
 
 
-/* =====================================================
-   ANIMATED AMBIENT GLOW
-===================================================== */
-
-.chat-container::before,
-.chat-container::after {
-  content: "";
-  position: absolute;
-
-  width: 420px;
-  height: 420px;
-
-  border-radius: 50%;
-
-  pointer-events: none;
-
-  filter: blur(70px);
-
-  opacity: 0.45;
-
-  z-index: -2;
+html[data-theme="dark"] .dashboard-right::before {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(82, 184, 148, 0.22),
+      transparent
+    ) !important;
 }
 
 
-/* Green glow */
-
-.chat-container::before {
-  top: -180px;
-  left: 15%;
-
-  background: rgba(79, 169, 135, 0.16);
-
-  animation:
-    novaGlowOne 12s ease-in-out infinite alternate;
-}
-
-
-/* Blue glow */
-
-.chat-container::after {
-  right: -160px;
-  bottom: -180px;
-
-  background: rgba(79, 140, 255, 0.12);
-
-  animation:
-    novaGlowTwo 15s ease-in-out infinite alternate;
-}
-
-
-@keyframes novaGlowOne {
-
-  0% {
-    transform:
-      translate3d(0, 0, 0)
-      scale(1);
-  }
-
-  50% {
-    transform:
-      translate3d(120px, 80px, 0)
-      scale(1.15);
-  }
-
-  100% {
-    transform:
-      translate3d(-50px, 140px, 0)
-      scale(0.9);
-  }
-
-}
-
-
-@keyframes novaGlowTwo {
-
-  0% {
-    transform:
-      translate3d(0, 0, 0)
-      scale(1);
-  }
-
-  50% {
-    transform:
-      translate3d(-100px, -100px, 0)
-      scale(1.2);
-  }
-
-  100% {
-    transform:
-      translate3d(-180px, 30px, 0)
-      scale(0.9);
-  }
-
-}
-
-
-/* =====================================================
-   MESSAGE AREA
-===================================================== */
-
-.messages-area {
-  position: relative;
-
+html[data-theme="dark"] .messages-area {
   background:
     radial-gradient(
       circle at 50% 0%,
-      rgba(255, 255, 255, 0.75),
+      rgba(82, 184, 148, 0.035),
       transparent 45%
-    );
+    ) !important;
 
-  overflow-y: auto;
-
-  overflow-x: hidden;
-
-  z-index: 1;
+  scrollbar-color:
+    rgba(82, 184, 148, 0.30)
+    transparent !important;
 }
 
 
-/* =====================================================
-   PREMIUM MOVING GRID
-===================================================== */
-
-.messages-area::before {
-  content: "";
-
-  position: absolute;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  z-index: -1;
-
-  opacity: 0.20;
-
+html[data-theme="dark"] .messages-area::before {
   background-image:
     linear-gradient(
-      rgba(79, 169, 135, 0.045) 1px,
+      rgba(82, 184, 148, 0.025) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(79, 169, 135, 0.045) 1px,
+      rgba(82, 184, 148, 0.025) 1px,
       transparent 1px
-    );
+    ) !important;
 
-  background-size:
-    55px 55px;
-
-  mask-image:
-    linear-gradient(
-      to bottom,
-      transparent,
-      black 15%,
-      black 80%,
-      transparent
-    );
-
-  animation: gridMove 25s linear infinite;
+  opacity: 0.18;
 }
 
 
-@keyframes gridMove {
-
-  from {
-    background-position:
-      0 0,
-      0 0;
-  }
-
-  to {
-    background-position:
-      55px 55px,
-      55px 55px;
-  }
-
-}
-
-
-/* =====================================================
-   SOFT LIGHT BEAMS
-===================================================== */
-
-.messages-area::after {
-  content: "";
-
-  position: absolute;
-
-  width: 600px;
-  height: 180px;
-
-  top: 20%;
-
-  left: 50%;
-
-  transform: translateX(-50%) rotate(-8deg);
-
-  pointer-events: none;
-
+html[data-theme="dark"] .messages-area::after {
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(79, 169, 135, 0.035),
+      rgba(82, 184, 148, 0.018),
       transparent
-    );
-
-  filter: blur(25px);
-
-  animation: lightBeam 9s ease-in-out infinite;
-
-  z-index: -1;
+    ) !important;
 }
 
 
-@keyframes lightBeam {
+html[data-theme="dark"] .chat-container::before {
+  background:
+    rgba(82, 184, 148, 0.075) !important;
 
-  0%,
-  100% {
-    opacity: 0.2;
+  opacity: 0.35 !important;
+}
 
-    transform:
-      translateX(-60%)
-      rotate(-8deg);
-  }
 
-  50% {
-    opacity: 0.8;
+html[data-theme="dark"] .chat-container::after {
+  background:
+    rgba(79, 140, 255, 0.045) !important;
 
-    transform:
-      translateX(-40%)
-      rotate(-8deg);
-  }
-
+  opacity: 0.25 !important;
 }
 
 
 /* =====================================================
-   AI MESSAGE — GLASS EFFECT
+   DARK AI MESSAGE
 ===================================================== */
 
-.ai-message {
-
+html[data-theme="dark"] .ai-message {
   background:
-    rgba(255, 255, 255, 0.88);
-
-  backdrop-filter:
-    blur(12px);
-
-  -webkit-backdrop-filter:
-    blur(12px);
+    rgba(13, 27, 23, 0.78) !important;
 
   border:
-    1px solid rgba(79, 169, 135, 0.18);
+    1px solid
+    rgba(82, 184, 148, 0.14) !important;
+
+  color:
+    #dce9e4 !important;
 
   box-shadow:
-    0 10px 35px rgba(15, 23, 42, 0.055);
-
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    0 10px 35px
+    rgba(0, 0, 0, 0.18) !important;
 }
 
 
-.ai-message:hover {
-
-  transform:
-    translateY(-2px);
+html[data-theme="dark"] .ai-message:hover {
+  background:
+    rgba(15, 31, 26, 0.86) !important;
 
   border-color:
-    rgba(79, 169, 135, 0.30);
+    rgba(82, 184, 148, 0.24) !important;
+}
 
-  box-shadow:
-    0 15px 40px rgba(15, 23, 42, 0.08);
+
+html[data-theme="dark"] .ai-message p {
+  color:
+    #cbdad4 !important;
+}
+
+
+html[data-theme="dark"] .ai-message strong,
+html[data-theme="dark"] .ai-message b,
+html[data-theme="dark"] .ai-message h1,
+html[data-theme="dark"] .ai-message h2,
+html[data-theme="dark"] .ai-message h3,
+html[data-theme="dark"] .ai-message h4 {
+  color:
+    #f0f7f4 !important;
 }
 
 
 /* =====================================================
-   USER MESSAGE — FLOATING EFFECT
+   DARK INPUT
 ===================================================== */
 
-.message.user-message {
-
-  box-shadow:
-    0 8px 25px rgba(72, 164, 129, 0.15);
-
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-
-.message.user-message:hover {
-
-  transform:
-    translateY(-2px);
-
-  box-shadow:
-    0 12px 32px rgba(72, 164, 129, 0.22);
-}
-
-
-/* =====================================================
-   MESSAGE ENTRY
-===================================================== */
-
-.user-message-wrapper,
-.ai-message {
-
-  animation:
-    novaMessageIn
-    0.5s
-    cubic-bezier(
-      0.22,
-      1,
-      0.36,
-      1
-    );
-}
-
-
-@keyframes novaMessageIn {
-
-  from {
-
-    opacity: 0;
-
-    transform:
-      translateY(18px)
-      scale(0.97);
-
-    filter:
-      blur(4px);
-  }
-
-  to {
-
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-
-    filter:
-      blur(0);
-  }
-
-}
-
-
-/* =====================================================
-   INPUT AREA — FLOATING GLASS
-===================================================== */
-
-.chat-input-area {
-
-  position: relative;
-
+html[data-theme="dark"] .chat-input-area {
   background:
-    rgba(255, 255, 255, 0.90);
-
-  backdrop-filter:
-    blur(18px);
-
-  -webkit-backdrop-filter:
-    blur(18px);
+    rgba(7, 17, 14, 0.94) !important;
 
   border-top:
-    1px solid rgba(226, 232, 240, 0.8);
+    1px solid
+    rgba(48, 72, 63, 0.65) !important;
 
   box-shadow:
-    0 -8px 30px rgba(15, 23, 42, 0.035);
+    0 -10px 30px
+    rgba(0, 0, 0, 0.24) !important;
 }
 
 
-/* =====================================================
-   INPUT PREMIUM GLOW
-===================================================== */
-
-.chat-input {
-
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease,
-    transform 0.25s ease;
+html[data-theme="dark"] .chat-input-area::before {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(82, 184, 148, 0.16),
+      transparent
+    ) !important;
 }
 
 
-.chat-input:focus {
+html[data-theme="dark"] .chat-input {
+  background:
+    rgba(15, 29, 25, 0.96) !important;
 
+  border:
+    1px solid
+    #294239 !important;
+
+  color:
+    #edf7f3 !important;
+}
+
+
+html[data-theme="dark"] .chat-input::placeholder {
+  color:
+    #71857d !important;
+}
+
+
+html[data-theme="dark"] .chat-input:focus {
   border-color:
-    #4fa987;
+    #52b894 !important;
 
-  box-shadow:
-    0 0 0 3px rgba(79, 169, 135, 0.10),
-    0 8px 25px rgba(79, 169, 135, 0.08);
+  background:
+    #10241e !important;
 }
 
 
 /* =====================================================
-   SEND BUTTON
+   DARK USER MESSAGE
 ===================================================== */
 
-.send-btn:not(:disabled) {
-
+html[data-theme="dark"] .message.user-message {
   background:
     linear-gradient(
       135deg,
       #4fa987,
       #398d6d
-    );
+    ) !important;
+
+  color:
+    #ffffff !important;
 
   box-shadow:
-    0 6px 20px rgba(79, 169, 135, 0.20);
-}
-
-
-.send-btn:hover:not(:disabled) {
-
-  transform:
-    translateY(-2px)
-    scale(1.05);
-
-  box-shadow:
-    0 10px 28px rgba(79, 169, 135, 0.30);
+    0 8px 25px
+    rgba(45, 130, 98, 0.22) !important;
 }
 
 
 /* =====================================================
-   SUBTLE SCROLLBAR
+   DARK BUTTONS
 ===================================================== */
 
-.messages-area::-webkit-scrollbar {
-  width: 6px;
-}
-
-.messages-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.messages-area::-webkit-scrollbar-thumb {
-
+html[data-theme="dark"] .upload-btn {
   background:
-    rgba(79, 169, 135, 0.25);
+    #10231e !important;
 
-  border-radius:
-    20px;
+  border-color:
+    #294239 !important;
+
+  color:
+    #a8bbb4 !important;
 }
 
-.messages-area::-webkit-scrollbar-thumb:hover {
 
+html[data-theme="dark"] .upload-btn:hover {
   background:
-    rgba(79, 169, 135, 0.45);
+    #152c25 !important;
+
+  border-color:
+    #3b6656 !important;
+
+  color:
+    #65c69f !important;
+}
+
+
+html[data-theme="dark"] .send-btn:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #52b894,
+      #398d6d
+    ) !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+html[data-theme="dark"] .send-btn:disabled {
+  background:
+    #26332f !important;
+
+  color:
+    #65756f !important;
+}
+
+
+/* =====================================================
+   DARK MOBILE OVERLAY
+===================================================== */
+
+html[data-theme="dark"] .mobile-sidebar-overlay {
+  background:
+    rgba(0, 0, 0, 0.68);
 }
 
 
@@ -1494,986 +1513,19 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .chat-container::before,
-  .chat-container::after,
-  .messages-area::before,
-  .messages-area::after,
-  .user-message-wrapper,
-  .ai-message {
+  *,
+  *::before,
+  *::after {
+    animation-duration:
+      0.01ms !important;
 
-    animation: none !important;
+    animation-iteration-count:
+      1 !important;
+
+    scroll-behavior:
+      auto !important;
+
+    transition-duration:
+      0.01ms !important;
   }
-
-}
-
-/* =========================================================
-   NOVA AI — FINAL DARK THEME OVERRIDE
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard {
-    background: #07110e !important;
-    color: #e8f2ee !important;
-}
-
-
-/* =========================================================
-   MAIN LAYOUT
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard-main {
-    background: #07110e !important;
-}
-
-html[data-theme="dark"] .dashboard-right {
-    background:
-        radial-gradient(
-            circle at 75% 10%,
-            rgba(82, 184, 148, 0.055),
-            transparent 32%
-        ),
-        #07110e !important;
-}
-
-html[data-theme="dark"] .chat-container {
-    background:
-        radial-gradient(
-            circle at 15% 20%,
-            rgba(82, 184, 148, 0.075),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 75%,
-            rgba(79, 140, 255, 0.035),
-            transparent 32%
-        ),
-        #07110e !important;
-}
-
-
-/* =========================================================
-   REMOVE LIGHT TOP GLOW
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard-right::before {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.22),
-            transparent
-        ) !important;
-
-    opacity: 0.55;
-}
-
-
-/* =========================================================
-   CHAT CONTAINER AMBIENT GLOW
-   ========================================================= */
-
-html[data-theme="dark"] .chat-container::before {
-    background: rgba(82, 184, 148, 0.075) !important;
-    opacity: 0.35 !important;
-}
-
-html[data-theme="dark"] .chat-container::after {
-    background: rgba(79, 140, 255, 0.045) !important;
-    opacity: 0.25 !important;
-}
-
-
-/* =========================================================
-   MESSAGES AREA
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area {
-    background:
-        radial-gradient(
-            circle at 50% 0%,
-            rgba(82, 184, 148, 0.035),
-            transparent 45%
-        ) !important;
-
-    scrollbar-color:
-        rgba(82, 184, 148, 0.30)
-        transparent !important;
-}
-
-
-/* =========================================================
-   DARK GRID
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::before {
-    background-image:
-        linear-gradient(
-            rgba(82, 184, 148, 0.025) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(82, 184, 148, 0.025) 1px,
-            transparent 1px
-        ) !important;
-
-    opacity: 0.18 !important;
-}
-
-
-/* =========================================================
-   DARK LIGHT BEAM
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::after {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.018),
-            transparent
-        ) !important;
-
-    opacity: 0.3;
-}
-
-
-/* =========================================================
-   DARK SCROLLBAR
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-track {
-    background: transparent !important;
-}
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-thumb {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(82, 184, 148, 0.32),
-            rgba(82, 184, 148, 0.16)
-        ) !important;
-
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-thumb:hover {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(82, 184, 148, 0.50),
-            rgba(82, 184, 148, 0.26)
-        ) !important;
-
-    background-clip: padding-box;
-}
-
-
-/* =========================================================
-   AI MESSAGE
-   ========================================================= */
-
-html[data-theme="dark"] .ai-message {
-    background:
-        rgba(13, 27, 23, 0.78) !important;
-
-    border:
-        1px solid
-        rgba(82, 184, 148, 0.14) !important;
-
-    color: #dce9e4 !important;
-
-    box-shadow:
-        0 10px 35px
-        rgba(0, 0, 0, 0.18) !important;
-
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-html[data-theme="dark"] .ai-message:hover {
-    background:
-        rgba(15, 31, 26, 0.86) !important;
-
-    border-color:
-        rgba(82, 184, 148, 0.24) !important;
-
-    box-shadow:
-        0 15px 40px
-        rgba(0, 0, 0, 0.28) !important;
-}
-
-
-/* =========================================================
-   AI TEXT
-   ========================================================= */
-
-html[data-theme="dark"] .ai-message p {
-    color: #cbdad4 !important;
-}
-
-html[data-theme="dark"] .ai-message strong,
-html[data-theme="dark"] .ai-message b {
-    color: #f0f7f4 !important;
-}
-
-html[data-theme="dark"] .ai-message h1,
-html[data-theme="dark"] .ai-message h2,
-html[data-theme="dark"] .ai-message h3,
-html[data-theme="dark"] .ai-message h4 {
-    color: #f0f7f4 !important;
-}
-
-
-/* =========================================================
-   CHAT INPUT AREA
-   THIS IS THE WHITE BOX AT THE BOTTOM
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input-area {
-    background:
-        rgba(7, 17, 14, 0.94) !important;
-
-    border-top:
-        1px solid
-        rgba(48, 72, 63, 0.65) !important;
-
-    box-shadow:
-        0 -10px 30px
-        rgba(0, 0, 0, 0.24) !important;
-
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-}
-
-
-/* =========================================================
-   INPUT TOP ACCENT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input-area::before {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.16),
-            transparent
-        ) !important;
-}
-
-
-/* =========================================================
-   CHAT INPUT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input {
-    background:
-        rgba(15, 29, 25, 0.96) !important;
-
-    border:
-        1px solid
-        #294239 !important;
-
-    color:
-        #edf7f3 !important;
-
-    box-shadow:
-        inset 0 1px 2px
-        rgba(0, 0, 0, 0.20) !important;
-}
-
-html[data-theme="dark"] .chat-input::placeholder {
-    color:
-        #71857d !important;
-}
-
-html[data-theme="dark"] .chat-input:focus {
-    border-color:
-        #52b894 !important;
-
-    background:
-        #10241e !important;
-
-    box-shadow:
-        0 0 0 3px
-        rgba(82, 184, 148, 0.10),
-        0 8px 25px
-        rgba(0, 0, 0, 0.20) !important;
-}
-
-
-/* =========================================================
-   USER MESSAGE
-   ========================================================= */
-
-html[data-theme="dark"] .message.user-message {
-    background:
-        linear-gradient(
-            135deg,
-            #4fa987,
-            #398d6d
-        ) !important;
-
-    color: #ffffff !important;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.10) !important;
-
-    box-shadow:
-        0 8px 25px
-        rgba(45, 130, 98, 0.22) !important;
-}
-
-html[data-theme="dark"] .message.user-message:hover {
-    box-shadow:
-        0 12px 32px
-        rgba(45, 130, 98, 0.30) !important;
-}
-
-
-/* =========================================================
-   UPLOAD / MIC BUTTONS
-   ========================================================= */
-
-html[data-theme="dark"] .upload-btn {
-    background:
-        #10231e !important;
-
-    border-color:
-        #294239 !important;
-
-    color:
-        #a8bbb4 !important;
-}
-
-html[data-theme="dark"] .upload-btn:hover {
-    background:
-        #152c25 !important;
-
-    border-color:
-        #3b6656 !important;
-
-    color:
-        #65c69f !important;
-}
-
-
-/* =========================================================
-   SEND BUTTON
-   ========================================================= */
-
-html[data-theme="dark"] .send-btn:not(:disabled) {
-    background:
-        linear-gradient(
-            135deg,
-            #52b894,
-            #398d6d
-        ) !important;
-
-    color: #ffffff !important;
-
-    box-shadow:
-        0 6px 20px
-        rgba(82, 184, 148, 0.20) !important;
-}
-
-html[data-theme="dark"] .send-btn:hover:not(:disabled) {
-    background:
-        linear-gradient(
-            135deg,
-            #62c8a2,
-            #439b7b
-        ) !important;
-
-    box-shadow:
-        0 10px 28px
-        rgba(82, 184, 148, 0.32) !important;
-}
-
-html[data-theme="dark"] .send-btn:disabled {
-    background:
-        #26332f !important;
-
-    color:
-        #65756f !important;
-
-    opacity: 0.8 !important;
-}
-
-
-/* =========================================================
-   AI MESSAGE ACTIONS
-   ========================================================= */
-
-html[data-theme="dark"] .message-actions {
-    border-top-color:
-        #263a33 !important;
-}
-
-html[data-theme="dark"] .message-actions button {
-    color:
-        #849a91 !important;
-}
-
-html[data-theme="dark"] .message-actions button:hover {
-    background:
-        rgba(82, 184, 148, 0.09) !important;
-
-    color:
-        #d8e9e2 !important;
-}
-
-
-/* =========================================================
-   FILE PREVIEW
-   ========================================================= */
-
-html[data-theme="dark"] .upload-preview {
-    background:
-        #10231e !important;
-
-    border-color:
-        #294239 !important;
-
-    color:
-        #dce9e4 !important;
-}
-
-
-/* =========================================================
-   REMOVE FILE
-   ========================================================= */
-
-html[data-theme="dark"] .remove-file {
-    color:
-        #81968d !important;
-}
-
-html[data-theme="dark"] .remove-file:hover {
-    color:
-        #65c69f !important;
-}
-
-
-/* =========================================================
-   EMPTY / LOADING
-   ========================================================= */
-
-html[data-theme="dark"] .chat-loading,
-html[data-theme="dark"] .chat-empty {
-    color:
-        #a5b7af !important;
-}
-
-
-/* =========================================================
-   GENERAL WHITE ELEMENTS INSIDE CHAT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-container input,
-html[data-theme="dark"] .chat-container textarea,
-html[data-theme="dark"] .chat-container button {
-    color-scheme: dark;
-}
-
-
-/* =========================================================
-   PREVENT LIGHT SIDE GAPS
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard,
-html[data-theme="dark"] .dashboard-main,
-html[data-theme="dark"] .dashboard-right,
-html[data-theme="dark"] .chat-container,
-html[data-theme="dark"] .messages-area,
-html[data-theme="dark"] .chat-input-area {
-    background-color:
-        #07110e !important;
-}
-
-/* =========================================================
-   NOVA AI — FINAL DARK THEME OVERRIDE
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard {
-    background: #07110e !important;
-    color: #e8f2ee !important;
-}
-
-
-/* =========================================================
-   MAIN LAYOUT
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard-main {
-    background: #07110e !important;
-}
-
-html[data-theme="dark"] .dashboard-right {
-    background:
-        radial-gradient(
-            circle at 75% 10%,
-            rgba(82, 184, 148, 0.055),
-            transparent 32%
-        ),
-        #07110e !important;
-}
-
-html[data-theme="dark"] .chat-container {
-    background:
-        radial-gradient(
-            circle at 15% 20%,
-            rgba(82, 184, 148, 0.075),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 75%,
-            rgba(79, 140, 255, 0.035),
-            transparent 32%
-        ),
-        #07110e !important;
-}
-
-
-/* =========================================================
-   REMOVE LIGHT TOP GLOW
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard-right::before {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.22),
-            transparent
-        ) !important;
-
-    opacity: 0.55;
-}
-
-
-/* =========================================================
-   CHAT CONTAINER AMBIENT GLOW
-   ========================================================= */
-
-html[data-theme="dark"] .chat-container::before {
-    background: rgba(82, 184, 148, 0.075) !important;
-    opacity: 0.35 !important;
-}
-
-html[data-theme="dark"] .chat-container::after {
-    background: rgba(79, 140, 255, 0.045) !important;
-    opacity: 0.25 !important;
-}
-
-
-/* =========================================================
-   MESSAGES AREA
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area {
-    background:
-        radial-gradient(
-            circle at 50% 0%,
-            rgba(82, 184, 148, 0.035),
-            transparent 45%
-        ) !important;
-
-    scrollbar-color:
-        rgba(82, 184, 148, 0.30)
-        transparent !important;
-}
-
-
-/* =========================================================
-   DARK GRID
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::before {
-    background-image:
-        linear-gradient(
-            rgba(82, 184, 148, 0.025) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(82, 184, 148, 0.025) 1px,
-            transparent 1px
-        ) !important;
-
-    opacity: 0.18 !important;
-}
-
-
-/* =========================================================
-   DARK LIGHT BEAM
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::after {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.018),
-            transparent
-        ) !important;
-
-    opacity: 0.3;
-}
-
-
-/* =========================================================
-   DARK SCROLLBAR
-   ========================================================= */
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-track {
-    background: transparent !important;
-}
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-thumb {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(82, 184, 148, 0.32),
-            rgba(82, 184, 148, 0.16)
-        ) !important;
-
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-html[data-theme="dark"] .messages-area::-webkit-scrollbar-thumb:hover {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(82, 184, 148, 0.50),
-            rgba(82, 184, 148, 0.26)
-        ) !important;
-
-    background-clip: padding-box;
-}
-
-
-/* =========================================================
-   AI MESSAGE
-   ========================================================= */
-
-html[data-theme="dark"] .ai-message {
-    background:
-        rgba(13, 27, 23, 0.78) !important;
-
-    border:
-        1px solid
-        rgba(82, 184, 148, 0.14) !important;
-
-    color: #dce9e4 !important;
-
-    box-shadow:
-        0 10px 35px
-        rgba(0, 0, 0, 0.18) !important;
-
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-}
-
-html[data-theme="dark"] .ai-message:hover {
-    background:
-        rgba(15, 31, 26, 0.86) !important;
-
-    border-color:
-        rgba(82, 184, 148, 0.24) !important;
-
-    box-shadow:
-        0 15px 40px
-        rgba(0, 0, 0, 0.28) !important;
-}
-
-
-/* =========================================================
-   AI TEXT
-   ========================================================= */
-
-html[data-theme="dark"] .ai-message p {
-    color: #cbdad4 !important;
-}
-
-html[data-theme="dark"] .ai-message strong,
-html[data-theme="dark"] .ai-message b {
-    color: #f0f7f4 !important;
-}
-
-html[data-theme="dark"] .ai-message h1,
-html[data-theme="dark"] .ai-message h2,
-html[data-theme="dark"] .ai-message h3,
-html[data-theme="dark"] .ai-message h4 {
-    color: #f0f7f4 !important;
-}
-
-
-/* =========================================================
-   CHAT INPUT AREA
-   THIS IS THE WHITE BOX AT THE BOTTOM
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input-area {
-    background:
-        rgba(7, 17, 14, 0.94) !important;
-
-    border-top:
-        1px solid
-        rgba(48, 72, 63, 0.65) !important;
-
-    box-shadow:
-        0 -10px 30px
-        rgba(0, 0, 0, 0.24) !important;
-
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-}
-
-
-/* =========================================================
-   INPUT TOP ACCENT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input-area::before {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(82, 184, 148, 0.16),
-            transparent
-        ) !important;
-}
-
-
-/* =========================================================
-   CHAT INPUT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-input {
-    background:
-        rgba(15, 29, 25, 0.96) !important;
-
-    border:
-        1px solid
-        #294239 !important;
-
-    color:
-        #edf7f3 !important;
-
-    box-shadow:
-        inset 0 1px 2px
-        rgba(0, 0, 0, 0.20) !important;
-}
-
-html[data-theme="dark"] .chat-input::placeholder {
-    color:
-        #71857d !important;
-}
-
-html[data-theme="dark"] .chat-input:focus {
-    border-color:
-        #52b894 !important;
-
-    background:
-        #10241e !important;
-
-    box-shadow:
-        0 0 0 3px
-        rgba(82, 184, 148, 0.10),
-        0 8px 25px
-        rgba(0, 0, 0, 0.20) !important;
-}
-
-
-/* =========================================================
-   USER MESSAGE
-   ========================================================= */
-
-html[data-theme="dark"] .message.user-message {
-    background:
-        linear-gradient(
-            135deg,
-            #4fa987,
-            #398d6d
-        ) !important;
-
-    color: #ffffff !important;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.10) !important;
-
-    box-shadow:
-        0 8px 25px
-        rgba(45, 130, 98, 0.22) !important;
-}
-
-html[data-theme="dark"] .message.user-message:hover {
-    box-shadow:
-        0 12px 32px
-        rgba(45, 130, 98, 0.30) !important;
-}
-
-
-/* =========================================================
-   UPLOAD / MIC BUTTONS
-   ========================================================= */
-
-html[data-theme="dark"] .upload-btn {
-    background:
-        #10231e !important;
-
-    border-color:
-        #294239 !important;
-
-    color:
-        #a8bbb4 !important;
-}
-
-html[data-theme="dark"] .upload-btn:hover {
-    background:
-        #152c25 !important;
-
-    border-color:
-        #3b6656 !important;
-
-    color:
-        #65c69f !important;
-}
-
-
-/* =========================================================
-   SEND BUTTON
-   ========================================================= */
-
-html[data-theme="dark"] .send-btn:not(:disabled) {
-    background:
-        linear-gradient(
-            135deg,
-            #52b894,
-            #398d6d
-        ) !important;
-
-    color: #ffffff !important;
-
-    box-shadow:
-        0 6px 20px
-        rgba(82, 184, 148, 0.20) !important;
-}
-
-html[data-theme="dark"] .send-btn:hover:not(:disabled) {
-    background:
-        linear-gradient(
-            135deg,
-            #62c8a2,
-            #439b7b
-        ) !important;
-
-    box-shadow:
-        0 10px 28px
-        rgba(82, 184, 148, 0.32) !important;
-}
-
-html[data-theme="dark"] .send-btn:disabled {
-    background:
-        #26332f !important;
-
-    color:
-        #65756f !important;
-
-    opacity: 0.8 !important;
-}
-
-
-/* =========================================================
-   AI MESSAGE ACTIONS
-   ========================================================= */
-
-html[data-theme="dark"] .message-actions {
-    border-top-color:
-        #263a33 !important;
-}
-
-html[data-theme="dark"] .message-actions button {
-    color:
-        #849a91 !important;
-}
-
-html[data-theme="dark"] .message-actions button:hover {
-    background:
-        rgba(82, 184, 148, 0.09) !important;
-
-    color:
-        #d8e9e2 !important;
-}
-
-
-/* =========================================================
-   FILE PREVIEW
-   ========================================================= */
-
-html[data-theme="dark"] .upload-preview {
-    background:
-        #10231e !important;
-
-    border-color:
-        #294239 !important;
-
-    color:
-        #dce9e4 !important;
-}
-
-
-/* =========================================================
-   REMOVE FILE
-   ========================================================= */
-
-html[data-theme="dark"] .remove-file {
-    color:
-        #81968d !important;
-}
-
-html[data-theme="dark"] .remove-file:hover {
-    color:
-        #65c69f !important;
-}
-
-
-/* =========================================================
-   EMPTY / LOADING
-   ========================================================= */
-
-html[data-theme="dark"] .chat-loading,
-html[data-theme="dark"] .chat-empty {
-    color:
-        #a5b7af !important;
-}
-
-
-/* =========================================================
-   GENERAL WHITE ELEMENTS INSIDE CHAT
-   ========================================================= */
-
-html[data-theme="dark"] .chat-container input,
-html[data-theme="dark"] .chat-container textarea,
-html[data-theme="dark"] .chat-container button {
-    color-scheme: dark;
-}
-
-
-/* =========================================================
-   PREVENT LIGHT SIDE GAPS
-   ========================================================= */
-
-html[data-theme="dark"] .dashboard,
-html[data-theme="dark"] .dashboard-main,
-html[data-theme="dark"] .dashboard-right,
-html[data-theme="dark"] .chat-container,
-html[data-theme="dark"] .messages-area,
-html[data-theme="dark"] .chat-input-area {
-    background-color:
-        #07110e !important;
 }

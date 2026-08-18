@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
@@ -19,6 +19,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   // =====================================================
+  // MOBILE SIDEBAR
+  // =====================================================
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // =====================================================
   // FETCH CHATS
   // =====================================================
 
@@ -35,7 +41,7 @@ export default function Dashboard() {
           setActiveChat(list[0]);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Fetch chats error:", err);
       } finally {
         setLoading(false);
       }
@@ -45,41 +51,54 @@ export default function Dashboard() {
   }, []);
 
   // =====================================================
-// CREATE NEW CHAT
-// =====================================================
+  // CREATE NEW CHAT
+  // =====================================================
 
-const createNewChat = async () => {
-  try {
-    console.log("Creating new chat...");
+  const createNewChat = async () => {
+    try {
+      const res = await api.post("/chat/new", {
+        title: "New Chat",
+      });
 
-    const res = await api.post("/chat/new", {
-      title: "New Chat",
-    });
+      const newChat = {
+        id: res.data.chat_id,
+        title: res.data.title || "New Chat",
+      };
 
-    console.log("New chat response:", res.data);
+      setChats((prev) => [
+        newChat,
+        ...prev.filter(
+          (chat) => chat.id !== newChat.id
+        ),
+      ]);
 
-    const newChat = {
-      id: res.data.chat_id,
-      title: res.data.title || "New Chat",
-    };
+      setActiveChat(newChat);
 
-    // Add new chat at top
-    setChats((prev) => [
-      newChat,
-      ...prev.filter((chat) => chat.id !== newChat.id),
-    ]);
+      // Mobile par sidebar close
+      setSidebarOpen(false);
 
-    // Make it active
-    setActiveChat(newChat);
+    } catch (err) {
+      console.error("Create chat error:", err);
 
-  } catch (err) {
-    console.error("Create chat error:", err);
-
-    if (err.response) {
-      console.error("Backend response:", err.response.data);
+      if (err.response) {
+        console.error(
+          "Backend response:",
+          err.response.data
+        );
+      }
     }
-  }
-};
+  };
+
+  // =====================================================
+  // SELECT CHAT
+  // =====================================================
+
+  const handleSelectChat = (chat) => {
+    setActiveChat(chat);
+
+    // Mobile par chat select hone ke baad drawer close
+    setSidebarOpen(false);
+  };
 
   // =====================================================
   // LOGOUT
@@ -91,63 +110,135 @@ const createNewChat = async () => {
   };
 
   // =====================================================
-  // DASHBOARD
+  // CLOSE SIDEBAR WITH ESC
   // =====================================================
 
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, []);
+
   // =====================================================
-// DASHBOARD UI
-// =====================================================
+  // LOCK BODY SCROLL WHEN MOBILE SIDEBAR OPEN
+  // =====================================================
 
-return (
-  <div className="dashboard">
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.classList.add(
+        "mobile-sidebar-open"
+      );
+    } else {
+      document.body.classList.remove(
+        "mobile-sidebar-open"
+      );
+    }
 
-    {/* =================================================
-        SIDEBAR
-    ================================================= */}
+    return () => {
+      document.body.classList.remove(
+        "mobile-sidebar-open"
+      );
+    };
+  }, [sidebarOpen]);
 
-    <aside className="dashboard-sidebar">
-  <Sidebar
-    chats={chats}
-    activeChat={activeChat}
-    onSelect={(chat) => {
-      setActiveChat(chat);
-    }}
-    onNewChat={createNewChat}
-    onLogout={handleLogout}
-    setChats={setChats}
-    setActiveChat={setActiveChat}
-  />
-</aside>
+  // =====================================================
+  // UI
+  // =====================================================
 
+  return (
+    <div
+      className={`dashboard ${
+        sidebarOpen ? "sidebar-is-open" : ""
+      }`}
+    >
 
-    {/* =================================================
-        MAIN CONTENT
-    ================================================= */}
+      {/* =================================================
+          MOBILE OVERLAY
+      ================================================= */}
 
-    <main className="dashboard-main">
+      <div
+        className={`mobile-sidebar-overlay ${
+          sidebarOpen ? "show" : ""
+        }`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
 
-      <div className="dashboard-right">
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
 
-        {/* =================================================
-            NAVBAR
-        ================================================= */}
+      <aside
+        className={`dashboard-sidebar ${
+          sidebarOpen ? "mobile-open" : ""
+        }`}
+      >
+        <Sidebar
+          chats={chats}
+          activeChat={activeChat}
 
-        <Navbar chat={activeChat} />
+          onSelect={handleSelectChat}
 
+          onNewChat={createNewChat}
 
-        {/* =================================================
-            CHAT AREA
-        ================================================= */}
+          onLogout={handleLogout}
 
-        <ChatBox
-          chat={activeChat}
-          loading={loading}
+          setChats={setChats}
+          setActiveChat={setActiveChat}
+
+          isOpen={sidebarOpen}
+
+          onClose={() =>
+            setSidebarOpen(false)
+          }
         />
+      </aside>
 
-      </div>
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
 
-    </main>
+      <main className="dashboard-main">
 
-  </div>
-);
+        <div className="dashboard-right">
+
+          {/* =================================================
+              NAVBAR
+          ================================================= */}
+
+          <Navbar
+            chat={activeChat}
+            onMenuClick={() =>
+              setSidebarOpen(true)
+            }
+          />
+
+          {/* =================================================
+              CHAT
+          ================================================= */}
+
+          <ChatBox
+            chat={activeChat}
+            loading={loading}
+          />
+
+        </div>
+
+      </main>
+    </div>
+  );
 }

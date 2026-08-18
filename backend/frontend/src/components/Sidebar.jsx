@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   FiPlus,
   FiLogOut,
@@ -9,7 +10,7 @@ import {
   FiSearch,
   FiMessageSquare,
   FiSettings,
-  FiUser,
+  FiX,
 } from "react-icons/fi";
 
 import api from "../api/api";
@@ -23,9 +24,11 @@ export default function Sidebar({
   onLogout,
   setChats,
   setActiveChat,
+  isOpen,
+  onClose,
 }) {
-
   const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(null);
 
@@ -40,7 +43,30 @@ export default function Sidebar({
 
   const handleSelectChat = (chat) => {
     setActiveChat(chat);
+
+    if (onSelect) {
+      onSelect(chat);
+    }
+
     setMenuOpen(null);
+
+    // Close sidebar on mobile
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  // =====================================================
+  // NEW CHAT
+  // =====================================================
+
+  const handleNewChat = () => {
+    onNewChat();
+
+    // Close sidebar on mobile
+    if (onClose) {
+      onClose();
+    }
   };
 
   // =====================================================
@@ -124,14 +150,27 @@ export default function Sidebar({
 
   return (
     <>
-      <aside className="sidebar">
+      {/* MOBILE OVERLAY */}
 
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={onClose}
+        />
+      )}
+
+      {/* SIDEBAR */}
+
+      <aside
+        className={`sidebar ${
+          isOpen ? "sidebar-open" : ""
+        }`}
+      >
         {/* =================================================
-            SIDEBAR HEADER
+            HEADER
         ================================================= */}
 
         <div className="sidebar-header">
-
           <div className="sidebar-brand">
             <div className="brand-icon">
               N
@@ -143,6 +182,16 @@ export default function Sidebar({
             </div>
           </div>
 
+          {/* MOBILE CLOSE BUTTON */}
+
+          <button
+            type="button"
+            className="mobile-close-btn"
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            <FiX size={21} />
+          </button>
         </div>
 
         {/* =================================================
@@ -150,16 +199,14 @@ export default function Sidebar({
         ================================================= */}
 
         <div className="sidebar-new-chat">
-
           <button
-  type="button"
-  className="new-chat-btn"
-  onClick={onNewChat}
->
-  <FiPlus />
-  <span>New Chat</span>
-</button>
-
+            type="button"
+            className="new-chat-btn"
+            onClick={handleNewChat}
+          >
+            <FiPlus size={18} />
+            <span>New Chat</span>
+          </button>
         </div>
 
         {/* =================================================
@@ -167,16 +214,18 @@ export default function Sidebar({
         ================================================= */}
 
         <div className="search-wrapper">
-  <FiSearch className="search-icon" />
+          <FiSearch className="search-icon" />
 
-  <input
-    type="text"
-    className="search-input"
-    placeholder="Search chats..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-  />
-</div>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search chats..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+          />
+        </div>
 
         {/* =================================================
             CHAT LIST HEADER
@@ -184,6 +233,7 @@ export default function Sidebar({
 
         <div className="chat-list-header">
           <span>YOUR CHATS</span>
+
           <span className="chat-count">
             {filteredChats.length}
           </span>
@@ -194,11 +244,8 @@ export default function Sidebar({
         ================================================= */}
 
         <div className="chat-list">
-
           {filteredChats.length === 0 ? (
-
             <div className="empty-chat">
-
               <FiMessageSquare size={24} />
 
               <span>
@@ -212,13 +259,9 @@ export default function Sidebar({
                   Start a new conversation
                 </small>
               )}
-
             </div>
-
           ) : (
-
             filteredChats.map((chat) => (
-
               <div
                 key={chat.id}
                 className={`chat-item ${
@@ -230,7 +273,6 @@ export default function Sidebar({
                   handleSelectChat(chat)
                 }
               >
-
                 {/* CHAT ICON */}
 
                 <div className="chat-item-icon">
@@ -240,9 +282,7 @@ export default function Sidebar({
                 {/* CHAT TITLE */}
 
                 <div className="chat-title">
-
                   {editingChat === chat.id ? (
-
                     <input
                       autoFocus
                       className="rename-input"
@@ -257,7 +297,6 @@ export default function Sidebar({
                         saveRename(chat)
                       }
                       onKeyDown={(e) => {
-
                         if (e.key === "Enter") {
                           saveRename(chat);
                         }
@@ -265,18 +304,13 @@ export default function Sidebar({
                         if (e.key === "Escape") {
                           setEditingChat(null);
                         }
-
                       }}
                     />
-
                   ) : (
-
                     <span title={chat.title}>
                       {chat.title || "New Chat"}
                     </span>
-
                   )}
-
                 </div>
 
                 {/* MORE MENU */}
@@ -287,8 +321,8 @@ export default function Sidebar({
                     e.stopPropagation()
                   }
                 >
-
                   <button
+                    type="button"
                     className="menu-button"
                     onClick={() =>
                       setMenuOpen(
@@ -302,18 +336,15 @@ export default function Sidebar({
                   </button>
 
                   {menuOpen === chat.id && (
-
                     <div className="menu-dropdown">
-
                       <button
+                        type="button"
                         onClick={() => {
-
                           setEditingChat(chat.id);
                           setEditTitle(
                             chat.title || ""
                           );
                           setMenuOpen(null);
-
                         }}
                       >
                         <FiEdit2 size={15} />
@@ -321,56 +352,53 @@ export default function Sidebar({
                       </button>
 
                       <button
+                        type="button"
                         className="delete-option"
                         onClick={() => {
-
                           setDeleteChatData(chat);
                           setMenuOpen(null);
-
                         }}
                       >
                         <FiTrash2 size={15} />
                         <span>Delete</span>
                       </button>
-
                     </div>
-
                   )}
-
                 </div>
-
               </div>
-
             ))
-
           )}
-
         </div>
 
         {/* =================================================
-            SIDEBAR FOOTER
+            SIDEBAR BOTTOM
         ================================================= */}
 
         <div className="sidebar-bottom">
+          <button
+            type="button"
+            className="settings-btn"
+            onClick={() => {
+              navigate("/settings");
 
-  <button
-    className="settings-btn"
-    onClick={() => navigate("/settings")}
-  >
-    <FiSettings />
-    Settings
-  </button>
+              if (onClose) {
+                onClose();
+              }
+            }}
+          >
+            <FiSettings />
+            Settings
+          </button>
 
-  <button
-    className="logout-btn"
-    onClick={onLogout}
-  >
-    <FiLogOut />
-    Logout
-  </button>
-
-</div>
-
+          <button
+            type="button"
+            className="logout-btn"
+            onClick={onLogout}
+          >
+            <FiLogOut />
+            Logout
+          </button>
+        </div>
       </aside>
 
       {/* =================================================
@@ -378,41 +406,37 @@ export default function Sidebar({
       ================================================= */}
 
       {deleteChatData && (
-
         <div
           className="modal-overlay"
           onClick={() =>
             setDeleteChatData(null)
           }
         >
-
           <div
             className="delete-modal"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
-
             <div className="delete-modal-icon">
               <FiTrash2 size={22} />
             </div>
 
-            <h2>
-              Delete Chat?
-            </h2>
+            <h2>Delete Chat?</h2>
 
             <p>
               Are you sure you want to delete
               <strong>
                 {" "}
-                "{deleteChatData.title}"
+                "{deleteChatData.title ||
+                  "New Chat"}"
               </strong>
               ?
             </p>
 
             <div className="modal-buttons">
-
               <button
+                type="button"
                 className="cancel-btn"
                 onClick={() =>
                   setDeleteChatData(null)
@@ -422,6 +446,7 @@ export default function Sidebar({
               </button>
 
               <button
+                type="button"
                 className="delete-btn"
                 onClick={() =>
                   deleteChat(deleteChatData)
@@ -429,13 +454,9 @@ export default function Sidebar({
               >
                 Delete
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
     </>
   );

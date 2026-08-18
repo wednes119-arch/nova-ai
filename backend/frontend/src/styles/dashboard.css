@@ -1,11 +1,6 @@
 /* =====================================================
-   NOVA AI — PREMIUM DASHBOARD
+   NOVA AI — DASHBOARD
    RESPONSIVE + MOBILE SIDEBAR DRAWER
-===================================================== */
-
-
-/* =====================================================
-   GLOBAL
 ===================================================== */
 
 html,
@@ -17,31 +12,35 @@ body,
   padding: 0;
 }
 
-
 * {
   box-sizing: border-box;
 }
 
-
-body.mobile-sidebar-open {
+body {
   overflow: hidden;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 
 /* =====================================================
-   ROOT DASHBOARD
+   DASHBOARD
 ===================================================== */
 
 .dashboard {
-  display: flex;
-
   width: 100%;
   height: 100vh;
   height: 100dvh;
 
-  overflow: hidden;
+  display: flex;
 
   position: relative;
+
+  overflow: hidden;
 
   background:
     radial-gradient(
@@ -57,23 +56,16 @@ body.mobile-sidebar-open {
     #f7f9fb;
 
   color: #17211d;
-
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
 }
 
 
 /* =====================================================
-   SIDEBAR
+   SIDEBAR HOLDER
 ===================================================== */
 
 .dashboard-sidebar {
-  width: 290px;
-  min-width: 290px;
+  width: 280px;
+  min-width: 280px;
 
   height: 100vh;
   height: 100dvh;
@@ -82,9 +74,9 @@ body.mobile-sidebar-open {
 
   position: relative;
 
-  z-index: 100;
+  z-index: 1000;
 
-  overflow: hidden;
+  overflow: visible;
 }
 
 
@@ -110,7 +102,7 @@ body.mobile-sidebar-open {
 
 
 /* =====================================================
-   RIGHT CONTENT
+   RIGHT SIDE
 ===================================================== */
 
 .dashboard-right {
@@ -118,6 +110,8 @@ body.mobile-sidebar-open {
 
   min-width: 0;
   min-height: 0;
+
+  height: 100%;
 
   display: flex;
   flex-direction: column;
@@ -158,8 +152,6 @@ body.mobile-sidebar-open {
       rgba(79, 169, 135, 0.45),
       transparent
     );
-
-  opacity: 0.65;
 
   pointer-events: none;
 
@@ -225,13 +217,11 @@ body.mobile-sidebar-open {
   z-index: -2;
 }
 
-
 .chat-container::before {
   top: -180px;
   left: 15%;
 
-  background:
-    rgba(79, 169, 135, 0.16);
+  background: rgba(79, 169, 135, 0.16);
 
   animation:
     novaGlowOne
@@ -241,13 +231,11 @@ body.mobile-sidebar-open {
     alternate;
 }
 
-
 .chat-container::after {
   right: -160px;
   bottom: -180px;
 
-  background:
-    rgba(79, 140, 255, 0.12);
+  background: rgba(79, 140, 255, 0.12);
 
   animation:
     novaGlowTwo
@@ -259,7 +247,6 @@ body.mobile-sidebar-open {
 
 
 @keyframes novaGlowOne {
-
   0% {
     transform:
       translate3d(0, 0, 0)
@@ -281,7 +268,6 @@ body.mobile-sidebar-open {
 
 
 @keyframes novaGlowTwo {
-
   0% {
     transform:
       translate3d(0, 0, 0)
@@ -340,6 +326,24 @@ body.mobile-sidebar-open {
 }
 
 
+.messages-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-area::-webkit-scrollbar-thumb {
+  background: rgba(79, 169, 135, 0.25);
+  border-radius: 20px;
+}
+
+.messages-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 169, 135, 0.45);
+}
+
+
 /* =====================================================
    GRID
 ===================================================== */
@@ -368,8 +372,7 @@ body.mobile-sidebar-open {
       transparent 1px
     );
 
-  background-size:
-    55px 55px;
+  background-size: 55px 55px;
 
   mask-image:
     linear-gradient(
@@ -389,7 +392,6 @@ body.mobile-sidebar-open {
 
 
 @keyframes gridMove {
-
   from {
     background-position:
       0 0,
@@ -446,7 +448,6 @@ body.mobile-sidebar-open {
 
 
 @keyframes lightBeam {
-
   0%,
   100% {
     opacity: 0.2;
@@ -463,34 +464,6 @@ body.mobile-sidebar-open {
       translateX(-40%)
       rotate(-8deg);
   }
-}
-
-
-/* =====================================================
-   SCROLLBAR
-===================================================== */
-
-.messages-area::-webkit-scrollbar {
-  width: 6px;
-}
-
-
-.messages-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-
-.messages-area::-webkit-scrollbar-thumb {
-  background:
-    rgba(79, 169, 135, 0.25);
-
-  border-radius: 20px;
-}
-
-
-.messages-area::-webkit-scrollbar-thumb:hover {
-  background:
-    rgba(79, 169, 135, 0.45);
 }
 
 
@@ -517,7 +490,6 @@ body.mobile-sidebar-open {
 
 
 @keyframes novaMessageIn {
-
   from {
     opacity: 0;
 
@@ -525,8 +497,7 @@ body.mobile-sidebar-open {
       translateY(18px)
       scale(0.97);
 
-    filter:
-      blur(4px);
+    filter: blur(4px);
   }
 
   to {
@@ -536,8 +507,7 @@ body.mobile-sidebar-open {
       translateY(0)
       scale(1);
 
-    filter:
-      blur(0);
+    filter: blur(0);
   }
 }
 
@@ -558,11 +528,8 @@ body.mobile-sidebar-open {
     0 10px 35px
     rgba(15, 23, 42, 0.055);
 
-  backdrop-filter:
-    blur(12px);
-
-  -webkit-backdrop-filter:
-    blur(12px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
   transition:
     transform 0.3s ease,
@@ -570,10 +537,8 @@ body.mobile-sidebar-open {
     border-color 0.3s ease;
 }
 
-
 .ai-message:hover {
-  transform:
-    translateY(-2px);
+  transform: translateY(-2px);
 
   border-color:
     rgba(79, 169, 135, 0.30);
@@ -583,30 +548,22 @@ body.mobile-sidebar-open {
     rgba(15, 23, 42, 0.08);
 }
 
-
 .ai-message p {
   color: #334155;
-
   line-height: 1.8;
 }
-
 
 .ai-message strong,
 .ai-message b {
   color: #17211d;
-
   font-weight: 650;
 }
-
 
 .ai-message h1,
 .ai-message h2,
 .ai-message h3,
 .ai-message h4 {
   color: #17211d;
-
-  letter-spacing:
-    -0.015em;
 }
 
 
@@ -637,10 +594,8 @@ body.mobile-sidebar-open {
     box-shadow 0.3s ease;
 }
 
-
 .message.user-message:hover {
-  transform:
-    translateY(-2px);
+  transform: translateY(-2px);
 
   box-shadow:
     0 12px 32px
@@ -655,20 +610,17 @@ body.mobile-sidebar-open {
 .message-actions {
   opacity: 0;
 
-  transform:
-    translateY(4px);
+  transform: translateY(4px);
 
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
 }
 
-
 .ai-message:hover .message-actions {
   opacity: 1;
 
-  transform:
-    translateY(0);
+  transform: translateY(0);
 }
 
 
@@ -701,11 +653,8 @@ body.mobile-sidebar-open {
     0 -8px 30px
     rgba(15, 23, 42, 0.035);
 
-  backdrop-filter:
-    blur(18px);
-
-  -webkit-backdrop-filter:
-    blur(18px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
   z-index: 50;
 }
@@ -759,8 +708,7 @@ body.mobile-sidebar-open {
   background:
     rgba(255, 255, 255, 0.96);
 
-  color:
-    #1e293b;
+  color: #1e293b;
 
   outline: none;
 
@@ -778,16 +726,12 @@ body.mobile-sidebar-open {
     transform 0.25s ease;
 }
 
-
 .chat-input::placeholder {
-  color:
-    #9aa7a2;
+  color: #9aa7a2;
 }
 
-
 .chat-input:focus {
-  border-color:
-    #4fa987;
+  border-color: #4fa987;
 
   box-shadow:
     0 0 0 3px
@@ -795,8 +739,7 @@ body.mobile-sidebar-open {
     0 8px 25px
     rgba(79, 169, 135, 0.08);
 
-  transform:
-    translateY(-1px);
+  transform: translateY(-1px);
 }
 
 
@@ -816,23 +759,13 @@ body.mobile-sidebar-open {
     color 0.22s ease;
 }
 
-
-.upload-btn {
-  position: relative;
-
-  overflow: hidden;
-}
-
-
 .upload-btn:hover {
-  transform:
-    translateY(-2px);
+  transform: translateY(-2px);
 
   box-shadow:
     0 7px 18px
     rgba(15, 23, 42, 0.07);
 }
-
 
 .send-btn:not(:disabled) {
   background:
@@ -847,7 +780,6 @@ body.mobile-sidebar-open {
     rgba(79, 169, 135, 0.20);
 }
 
-
 .send-btn:hover:not(:disabled) {
   transform:
     translateY(-2px)
@@ -858,16 +790,12 @@ body.mobile-sidebar-open {
     rgba(79, 169, 135, 0.30);
 }
 
-
 .send-btn:active:not(:disabled) {
-  transform:
-    scale(0.92);
+  transform: scale(0.92);
 }
 
-
 .send-btn:disabled {
-  background:
-    #aeb4ba;
+  background: #aeb4ba;
 
   box-shadow: none;
 
@@ -888,12 +816,9 @@ body.mobile-sidebar-open {
     ease;
 }
 
-
 @keyframes filePreviewIn {
-
   from {
     opacity: 0;
-
     transform:
       translateY(8px)
       scale(0.96);
@@ -901,7 +826,6 @@ body.mobile-sidebar-open {
 
   to {
     opacity: 1;
-
     transform:
       translateY(0)
       scale(1);
@@ -921,9 +845,7 @@ body.mobile-sidebar-open {
     infinite;
 }
 
-
 @keyframes recordingGlow {
-
   0% {
     box-shadow:
       0 0 0 0
@@ -958,16 +880,12 @@ body.mobile-sidebar-open {
   background:
     rgba(4, 10, 8, 0.58);
 
-  backdrop-filter:
-    blur(3px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 
-  -webkit-backdrop-filter:
-    blur(3px);
-
-  z-index: 90;
+  z-index: 1999;
 
   opacity: 0;
-
   visibility: hidden;
 
   transition:
@@ -975,10 +893,8 @@ body.mobile-sidebar-open {
     visibility 0.28s ease;
 }
 
-
 .mobile-sidebar-overlay.show {
   opacity: 1;
-
   visibility: visible;
 }
 
@@ -990,8 +906,8 @@ body.mobile-sidebar-open {
 @media (max-width: 1100px) {
 
   .dashboard-sidebar {
-    width: 250px;
-    min-width: 250px;
+    width: 260px;
+    min-width: 260px;
   }
 
   .messages-area {
@@ -1007,7 +923,7 @@ body.mobile-sidebar-open {
 
 
 /* =====================================================
-   MOBILE / TABLET DRAWER
+   MOBILE
 ===================================================== */
 
 @media (max-width: 768px) {
@@ -1023,9 +939,7 @@ body.mobile-sidebar-open {
   }
 
 
-  /* -----------------------------
-     SIDEBAR DRAWER
-  ----------------------------- */
+  /* Sidebar itself is controlled by sidebar.css */
 
   .dashboard-sidebar {
     position: fixed;
@@ -1039,44 +953,25 @@ body.mobile-sidebar-open {
     height: 100vh;
     height: 100dvh;
 
-    z-index: 100;
+    z-index: 2000;
 
-    transform:
-      translateX(-105%);
-
-    transition:
-      transform 0.32s
-      cubic-bezier(
-        0.22,
-        1,
-        0.36,
-        1
-      );
-
-    box-shadow:
-      12px 0 40px
-      rgba(0, 0, 0, 0.16);
+    pointer-events: none;
   }
 
 
-  .dashboard-sidebar.mobile-open {
-    transform:
-      translateX(0);
+  /*
+    Sidebar component inside dashboard-sidebar
+    controls the actual drawer.
+  */
+
+  .dashboard-sidebar .sidebar {
+    pointer-events: auto;
   }
 
 
-  /* -----------------------------
-     OVERLAY
-  ----------------------------- */
-
-  .mobile-sidebar-overlay {
-    display: block;
-  }
-
-
-  /* -----------------------------
+  /* =================================================
      MAIN
-  ----------------------------- */
+  ================================================= */
 
   .dashboard-main {
     width: 100%;
@@ -1085,16 +980,15 @@ body.mobile-sidebar-open {
     min-width: 0;
   }
 
-
   .dashboard-right {
     width: 100%;
     height: 100%;
   }
 
 
-  /* -----------------------------
+  /* =================================================
      CHAT
-  ----------------------------- */
+  ================================================= */
 
   .messages-area {
     padding:
@@ -1110,7 +1004,14 @@ body.mobile-sidebar-open {
     padding:
       11px
       12px
-      calc(12px + env(safe-area-inset-bottom));
+      calc(
+        12px + env(safe-area-inset-bottom)
+      );
+  }
+
+
+  .mobile-sidebar-overlay {
+    display: block;
   }
 }
 
@@ -1122,9 +1023,8 @@ body.mobile-sidebar-open {
 @media (max-width: 600px) {
 
   .dashboard-sidebar {
-    width: min(86vw, 310px);
+    width: min(88vw, 320px);
   }
-
 
   .messages-area {
     padding:
@@ -1133,16 +1033,16 @@ body.mobile-sidebar-open {
       115px;
   }
 
-
   .chat-input-area {
     gap: 5px;
 
     padding:
       8px
       8px
-      calc(10px + env(safe-area-inset-bottom));
+      calc(
+        10px + env(safe-area-inset-bottom)
+      );
   }
-
 
   .chat-input {
     min-height: 44px;
@@ -1156,14 +1056,12 @@ body.mobile-sidebar-open {
     font-size: 14px;
   }
 
-
   .upload-btn {
     width: 42px;
     height: 42px;
 
     flex-basis: 42px;
   }
-
 
   .send-btn {
     width: 44px;
@@ -1172,11 +1070,9 @@ body.mobile-sidebar-open {
     flex-basis: 44px;
   }
 
-
   .ai-message {
     width: 94% !important;
   }
-
 
   .message.user-message {
     max-width: 88% !important;
@@ -1191,15 +1087,13 @@ body.mobile-sidebar-open {
 @media (max-width: 400px) {
 
   .dashboard-sidebar {
-    width: 88vw;
+    width: 90vw;
   }
-
 
   .messages-area {
     padding-left: 9px;
     padding-right: 9px;
   }
-
 
   .chat-input-area {
     padding-left: 6px;
@@ -1213,19 +1107,13 @@ body.mobile-sidebar-open {
 ===================================================== */
 
 html[data-theme="dark"] .dashboard {
-  background:
-    #07110e !important;
-
-  color:
-    #e8f2ee !important;
+  background: #07110e !important;
+  color: #e8f2ee !important;
 }
-
 
 html[data-theme="dark"] .dashboard-main {
-  background:
-    #07110e !important;
+  background: #07110e !important;
 }
-
 
 html[data-theme="dark"] .dashboard-right {
   background:
@@ -1236,7 +1124,6 @@ html[data-theme="dark"] .dashboard-right {
     ),
     #07110e !important;
 }
-
 
 html[data-theme="dark"] .chat-container {
   background:
@@ -1253,7 +1140,6 @@ html[data-theme="dark"] .chat-container {
     #07110e !important;
 }
 
-
 html[data-theme="dark"] .dashboard-right::before {
   background:
     linear-gradient(
@@ -1263,7 +1149,6 @@ html[data-theme="dark"] .dashboard-right::before {
       transparent
     ) !important;
 }
-
 
 html[data-theme="dark"] .messages-area {
   background:
@@ -1277,7 +1162,6 @@ html[data-theme="dark"] .messages-area {
     rgba(82, 184, 148, 0.30)
     transparent !important;
 }
-
 
 html[data-theme="dark"] .messages-area::before {
   background-image:
@@ -1294,25 +1178,12 @@ html[data-theme="dark"] .messages-area::before {
   opacity: 0.18;
 }
 
-
-html[data-theme="dark"] .messages-area::after {
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(82, 184, 148, 0.018),
-      transparent
-    ) !important;
-}
-
-
 html[data-theme="dark"] .chat-container::before {
   background:
     rgba(82, 184, 148, 0.075) !important;
 
   opacity: 0.35 !important;
 }
-
 
 html[data-theme="dark"] .chat-container::after {
   background:
@@ -1342,7 +1213,6 @@ html[data-theme="dark"] .ai-message {
     rgba(0, 0, 0, 0.18) !important;
 }
 
-
 html[data-theme="dark"] .ai-message:hover {
   background:
     rgba(15, 31, 26, 0.86) !important;
@@ -1351,12 +1221,9 @@ html[data-theme="dark"] .ai-message:hover {
     rgba(82, 184, 148, 0.24) !important;
 }
 
-
 html[data-theme="dark"] .ai-message p {
-  color:
-    #cbdad4 !important;
+  color: #cbdad4 !important;
 }
-
 
 html[data-theme="dark"] .ai-message strong,
 html[data-theme="dark"] .ai-message b,
@@ -1364,8 +1231,7 @@ html[data-theme="dark"] .ai-message h1,
 html[data-theme="dark"] .ai-message h2,
 html[data-theme="dark"] .ai-message h3,
 html[data-theme="dark"] .ai-message h4 {
-  color:
-    #f0f7f4 !important;
+  color: #f0f7f4 !important;
 }
 
 
@@ -1386,18 +1252,6 @@ html[data-theme="dark"] .chat-input-area {
     rgba(0, 0, 0, 0.24) !important;
 }
 
-
-html[data-theme="dark"] .chat-input-area::before {
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(82, 184, 148, 0.16),
-      transparent
-    ) !important;
-}
-
-
 html[data-theme="dark"] .chat-input {
   background:
     rgba(15, 29, 25, 0.96) !important;
@@ -1410,19 +1264,14 @@ html[data-theme="dark"] .chat-input {
     #edf7f3 !important;
 }
 
-
 html[data-theme="dark"] .chat-input::placeholder {
-  color:
-    #71857d !important;
+  color: #71857d !important;
 }
 
-
 html[data-theme="dark"] .chat-input:focus {
-  border-color:
-    #52b894 !important;
+  border-color: #52b894 !important;
 
-  background:
-    #10241e !important;
+  background: #10241e !important;
 }
 
 
@@ -1438,8 +1287,7 @@ html[data-theme="dark"] .message.user-message {
       #398d6d
     ) !important;
 
-  color:
-    #ffffff !important;
+  color: #ffffff !important;
 
   box-shadow:
     0 8px 25px
@@ -1462,7 +1310,6 @@ html[data-theme="dark"] .upload-btn {
     #a8bbb4 !important;
 }
 
-
 html[data-theme="dark"] .upload-btn:hover {
   background:
     #152c25 !important;
@@ -1474,7 +1321,6 @@ html[data-theme="dark"] .upload-btn:hover {
     #65c69f !important;
 }
 
-
 html[data-theme="dark"] .send-btn:not(:disabled) {
   background:
     linear-gradient(
@@ -1483,17 +1329,13 @@ html[data-theme="dark"] .send-btn:not(:disabled) {
       #398d6d
     ) !important;
 
-  color:
-    #ffffff !important;
+  color: #ffffff !important;
 }
 
-
 html[data-theme="dark"] .send-btn:disabled {
-  background:
-    #26332f !important;
+  background: #26332f !important;
 
-  color:
-    #65756f !important;
+  color: #65756f !important;
 }
 
 

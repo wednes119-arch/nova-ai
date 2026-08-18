@@ -2099,3 +2099,381 @@ body {
 .back-signup-btn:hover {
   text-decoration: underline;
 }
+
+
+/* =========================================================
+   NOVA AI — CAPACITOR / MOBILE APP AUTH FIX
+   Keeps desktop UI unchanged
+========================================================= */
+
+@media (max-width: 800px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .auth-page {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+
+    padding:
+      max(16px, env(safe-area-inset-top))
+      14px
+      max(16px, env(safe-area-inset-bottom))
+      14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    /* Prevent iOS text/input weirdness */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .auth-container,
+  .auth-wrapper {
+    width: 100%;
+    max-width: 480px;
+
+    height: auto;
+    min-height: auto;
+
+    display: block;
+
+    margin: auto;
+  }
+
+  .auth-brand {
+    display: none;
+  }
+
+  .auth-form-wrapper,
+  .auth-form-section {
+    width: 100%;
+    height: auto;
+    min-height: auto;
+
+    padding:
+      32px 22px
+      30px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    border-radius: 24px;
+
+    overflow: visible;
+
+    background:
+      rgba(9, 11, 20, 0.92);
+
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  .auth-form,
+  .auth-card {
+    width: 100%;
+    max-width: 430px;
+  }
+
+  /* Mobile logo */
+  .mobile-logo {
+    display: flex;
+    justify-content: center;
+
+    margin-bottom: 18px;
+  }
+
+  .mobile-logo .brand-icon {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 15px;
+  }
+
+  /* Heading */
+  .form-heading,
+  .auth-card-header {
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .form-heading h2,
+  .auth-card-header h2 {
+    font-size: 27px;
+    line-height: 1.2;
+    letter-spacing: -0.7px;
+  }
+
+  .form-heading p,
+  .auth-card-header p {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+
+  /* Form */
+  .form-group {
+    margin-bottom: 17px;
+  }
+
+  .form-group label {
+    margin-bottom: 7px;
+    font-size: 12px;
+  }
+
+  /* Inputs */
+  .input-wrapper input {
+    width: 100%;
+    height: 52px;
+
+    padding-left: 46px;
+    padding-right: 46px;
+
+    font-size: 16px;
+
+    border-radius: 12px;
+  }
+
+  .input-icon {
+    left: 15px;
+    width: 17px;
+    height: 17px;
+  }
+
+  .password-toggle {
+    right: 7px;
+
+    width: 38px;
+    height: 38px;
+  }
+
+  /* Button */
+  .auth-submit {
+    width: 100%;
+    height: 52px;
+
+    margin-top: 7px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+  }
+
+  /* Login / Signup switch */
+  .auth-switch {
+    margin-top: 20px;
+
+    gap: 4px;
+
+    font-size: 12.5px;
+
+    text-align: center;
+  }
+
+  /* Footer */
+  .auth-footer,
+  .terms {
+    max-width: 320px;
+
+    margin-top: 22px;
+
+    font-size: 9.5px;
+
+    line-height: 1.65;
+  }
+
+  /* Divider */
+  .auth-divider {
+    margin:
+      23px 0 14px;
+  }
+
+  /* OTP */
+  .otp-icon {
+    width: 54px;
+    height: 54px;
+
+    margin-bottom: 15px;
+  }
+
+  .verification-email {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+
+    font-size: 13px;
+  }
+
+  .otp-input-wrapper input {
+    height: 52px;
+
+    font-size: 19px;
+    letter-spacing: 6px;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .auth-page {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      10px
+      max(12px, env(safe-area-inset-bottom))
+      10px;
+  }
+
+  .auth-form-wrapper,
+  .auth-form-section {
+    padding:
+      27px 18px
+      25px;
+
+    border-radius: 21px;
+  }
+
+  .form-heading h2,
+  .auth-card-header h2 {
+    font-size: 25px;
+  }
+
+  .form-heading p,
+  .auth-card-header p {
+    font-size: 12.5px;
+  }
+
+  .input-wrapper input {
+    height: 51px;
+  }
+
+  .auth-submit {
+    height: 51px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .auth-page {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .auth-form-wrapper,
+  .auth-form-section {
+    padding:
+      23px 15px
+      22px;
+
+    border-radius: 19px;
+  }
+
+  .mobile-logo {
+    margin-bottom: 14px;
+  }
+
+  .mobile-logo .brand-icon {
+    width: 46px;
+    height: 46px;
+
+    font-size: 22px;
+  }
+
+  .form-heading,
+  .auth-card-header {
+    margin-bottom: 21px;
+  }
+
+  .form-heading h2,
+  .auth-card-header h2 {
+    font-size: 23px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .input-wrapper input {
+    height: 49px;
+    font-size: 16px;
+  }
+
+  .auth-submit {
+    height: 49px;
+  }
+}
+
+
+/* =========================================================
+   CAPACITOR SAFE AREA
+========================================================= */
+
+@supports (padding: env(safe-area-inset-top)) {
+
+  @media (max-width: 800px) {
+
+    .auth-page {
+      padding-top:
+        max(14px, env(safe-area-inset-top));
+
+      padding-bottom:
+        max(14px, env(safe-area-inset-bottom));
+    }
+  }
+}
+
+
+/* =========================================================
+   MOBILE INPUT BEHAVIOR
+========================================================= */
+
+@media (max-width: 800px) {
+
+  input,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  /* Prevent browser zoom on focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

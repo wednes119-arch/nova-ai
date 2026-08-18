@@ -56,14 +56,19 @@ export default function Login() {
       navigate("/dashboard");
 
     } catch (err) {
-      console.error("Login Error:", err);
+  console.log("LOGIN ERROR:", err);
 
-      toast.error(
-        err.response?.data?.message ||
-        err.response?.data?.detail ||
-        "Login Failed"
-      );
-    } finally {
+  console.log("STATUS:", err.response?.status);
+  console.log("DATA:", err.response?.data);
+  console.log("MESSAGE:", err.message);
+
+  toast.error(
+    err.response?.data?.detail ||
+    err.message ||
+    "Login failed"
+  );
+}
+    finally {
       setLoading(false);
     }
   }

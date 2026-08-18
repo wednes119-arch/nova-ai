@@ -95,20 +95,25 @@ export default function Signup() {
       // -------------------------------------------------
 
       toast.error(
-        res.data.message ||
+        res.data?.message ||
+        res.data?.detail ||
         "Signup failed"
       );
 
     } catch (err) {
+      // -------------------------------------------------
+      // API ERROR
+      // -------------------------------------------------
 
-      console.error(
-        "Signup Error:",
-        err
-      );
+      console.log("SIGNUP ERROR:", err);
+      console.log("STATUS:", err.response?.status);
+      console.log("DATA:", err.response?.data);
+      console.log("MESSAGE:", err.message);
 
       toast.error(
         err.response?.data?.message ||
         err.response?.data?.detail ||
+        err.message ||
         "Signup failed"
       );
 

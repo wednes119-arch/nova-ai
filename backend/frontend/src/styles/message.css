@@ -1,7 +1,12 @@
 /* =========================================================
    NOVA AI — MESSAGE COMPONENT
-   Isolated message styles
-   Works with ChatBox.jsx / chat.css
+   FINAL RESPONSIVE VERSION
+
+   IMPORTANT:
+   - Desktop UI preserved
+   - Mobile UI optimized
+   - Message.jsx does NOT need changes
+   - No changes to Chat / Navbar / Settings
 ========================================================= */
 
 
@@ -14,7 +19,7 @@
   position: relative;
 
   width: 100%;
-
+  max-width: 100%;
   min-width: 0;
 
   box-sizing: border-box;
@@ -36,9 +41,12 @@
 
   gap: 7px;
 
+  width: 100%;
+  max-width: 100%;
+
   min-width: 0;
 
-  width: 100%;
+  box-sizing: border-box;
 }
 
 
@@ -51,22 +59,13 @@
 
   width: fit-content;
 
-  max-width: min(
-    78%,
-    720px
-  );
+  max-width: min(78%, 720px);
 
   min-width: 0;
 
-  padding:
-    11px
-    15px;
+  padding: 11px 15px;
 
-  border-radius:
-    17px
-    17px
-    5px
-    17px;
+  border-radius: 17px 17px 5px 17px;
 
   background:
     linear-gradient(
@@ -83,7 +82,7 @@
 
   box-sizing: border-box;
 
-  overflow: visible;
+  overflow: hidden;
 
   animation:
     novaMessageIn
@@ -100,13 +99,11 @@
   display: block;
 
   width: auto;
-
   max-width: 100%;
 
   min-width: 0;
 
   margin: 0;
-
   padding: 0;
 
   color: inherit;
@@ -123,14 +120,14 @@
 
   word-break: normal;
 
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 
-  overflow: visible;
+  box-sizing: border-box;
 }
 
 
 /* =========================================================
-   USER MARKDOWN RESET
+   USER MARKDOWN
 ========================================================= */
 
 .nova-user-message-content > * {
@@ -147,10 +144,7 @@
 
   max-width: 100%;
 
-  margin:
-    0
-    0
-    8px;
+  margin: 0 0 8px;
 
   padding: 0;
 
@@ -164,7 +158,7 @@
 
   word-break: normal;
 
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 
@@ -175,16 +169,20 @@
 
 .nova-user-message-content ul,
 .nova-user-message-content ol {
-  margin:
-    7px
-    0;
+  margin: 7px 0;
 
   padding-left: 20px;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
 }
 
 
 .nova-user-message-content li {
   margin-bottom: 3px;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -201,30 +199,35 @@
 .nova-user-message-content a {
   color: #ffffff;
 
-  text-decoration:
-    underline;
+  text-decoration: underline;
 
   text-underline-offset: 2px;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
 }
 
 
 .nova-user-message-content blockquote {
-  margin:
-    8px
-    0;
+  margin: 8px 0;
 
-  padding:
-    5px
-    10px;
+  padding: 5px 10px;
 
   border-left:
     3px solid
-    rgba(255,255,255,0.45);
+    rgba(255, 255, 255, 0.45);
 
   background:
-    rgba(255,255,255,0.08);
+    rgba(255, 255, 255, 0.08);
 
   border-radius: 4px;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -235,14 +238,14 @@
 .nova-user-message-content code {
   display: inline;
 
-  padding:
-    2px
-    5px;
+  max-width: 100%;
+
+  padding: 2px 5px;
 
   border-radius: 5px;
 
   background:
-    rgba(0,0,0,0.14);
+    rgba(0, 0, 0, 0.14);
 
   color: #ffffff;
 
@@ -256,14 +259,14 @@
 
   white-space: pre-wrap;
 
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
 }
 
 
 /* =========================================================
    USER EDIT BUTTON
-   IMPORTANT:
-   This stays BELOW the message.
 ========================================================= */
 
 .nova-user-edit-btn {
@@ -283,20 +286,18 @@
 
   height: 32px;
 
-  padding:
-    0
-    10px;
+  padding: 0 10px;
 
   margin: 0;
 
   border:
     1px solid
-    rgba(148,163,184,0.28);
+    rgba(148, 163, 184, 0.28);
 
   border-radius: 9px;
 
   background:
-    rgba(255,255,255,0.88);
+    rgba(255, 255, 255, 0.88);
 
   color: #64748b;
 
@@ -318,7 +319,7 @@
 
   box-shadow:
     0 3px 10px
-    rgba(15,23,42,0.04);
+    rgba(15, 23, 42, 0.04);
 
   transition:
     background 0.2s ease,
@@ -343,14 +344,13 @@
   color: #438d70;
 
   border-color:
-    rgba(79,169,135,0.32);
+    rgba(79, 169, 135, 0.32);
 
-  transform:
-    translateY(-1px);
+  transform: translateY(-1px);
 
   box-shadow:
     0 6px 16px
-    rgba(15,23,42,0.07);
+    rgba(15, 23, 42, 0.07);
 }
 
 
@@ -362,60 +362,11 @@
 
 
 /* =========================================================
-   DARK USER MESSAGE
-========================================================= */
-
-html[data-theme="dark"] .nova-user-message-bubble {
-  background:
-    linear-gradient(
-      145deg,
-      #52ad8a,
-      #3d896d
-    );
-
-  color: #ffffff;
-
-  box-shadow:
-    0 9px 25px
-    rgba(0,0,0,0.25);
-}
-
-
-html[data-theme="dark"] .nova-user-edit-btn {
-  background:
-    rgba(17,30,25,0.94);
-
-  border-color:
-    rgba(82,184,148,0.20);
-
-  color: #8fa59c;
-
-  box-shadow:
-    0 4px 15px
-    rgba(0,0,0,0.20);
-}
-
-
-html[data-theme="dark"] .nova-user-edit-btn:hover {
-  background:
-    #14231e;
-
-  color: #70c5a4;
-
-  border-color:
-    rgba(82,184,148,0.36);
-}
-
-
-/* =========================================================
    EDIT MESSAGE BOX
 ========================================================= */
 
 .nova-edit-message-box {
-  width: min(
-    78%,
-    720px
-  );
+  width: min(78%, 720px);
 
   max-width: 100%;
 
@@ -429,21 +380,20 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   gap: 9px;
 
-  padding:
-    10px;
+  padding: 10px;
 
   border:
     1px solid
-    rgba(79,169,135,0.28);
+    rgba(79, 169, 135, 0.28);
 
   border-radius: 17px;
 
   background:
-    rgba(255,255,255,0.98);
+    rgba(255, 255, 255, 0.98);
 
   box-shadow:
     0 10px 30px
-    rgba(15,23,42,0.08);
+    rgba(15, 23, 42, 0.08);
 
   box-sizing: border-box;
 
@@ -469,9 +419,7 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   max-height: 220px;
 
-  padding:
-    10px
-    11px;
+  padding: 10px 11px;
 
   resize: vertical;
 
@@ -481,8 +429,7 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   border-radius: 11px;
 
-  background:
-    #f7faf9;
+  background: #f7faf9;
 
   color: #1f2937;
 
@@ -502,12 +449,11 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
 
 .nova-edit-message-box textarea:focus {
-  background:
-    #f2f7f5;
+  background: #f2f7f5;
 
   box-shadow:
     inset 0 0 0 1px
-    rgba(79,169,135,0.16);
+    rgba(79, 169, 135, 0.16);
 }
 
 
@@ -532,6 +478,10 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
   gap: 7px;
 
   width: 100%;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
 }
 
 
@@ -551,9 +501,7 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   height: 34px;
 
-  padding:
-    0
-    11px;
+  padding: 0 11px;
 
   border-radius: 9px;
 
@@ -566,6 +514,8 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
   line-height: 1;
 
   cursor: pointer;
+
+  box-sizing: border-box;
 
   transition:
     background 0.2s ease,
@@ -582,7 +532,9 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 }
 
 
-/* CANCEL */
+/* =========================================================
+   CANCEL
+========================================================= */
 
 .nova-edit-cancel-btn {
   border:
@@ -606,7 +558,9 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 }
 
 
-/* SAVE */
+/* =========================================================
+   SAVE
+========================================================= */
 
 .nova-edit-save-btn {
   border:
@@ -625,7 +579,7 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   box-shadow:
     0 5px 14px
-    rgba(63,152,120,0.18);
+    rgba(63, 152, 120, 0.18);
 }
 
 
@@ -635,7 +589,7 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
   box-shadow:
     0 7px 18px
-    rgba(63,152,120,0.25);
+    rgba(63, 152, 120, 0.25);
 }
 
 
@@ -650,69 +604,6 @@ html[data-theme="dark"] .nova-user-edit-btn:hover {
 
 
 /* =========================================================
-   DARK EDIT BOX
-========================================================= */
-
-html[data-theme="dark"] .nova-edit-message-box {
-  background:
-    rgba(12,23,19,0.98);
-
-  border-color:
-    rgba(82,184,148,0.25);
-
-  box-shadow:
-    0 12px 32px
-    rgba(0,0,0,0.30);
-}
-
-
-html[data-theme="dark"] .nova-edit-message-box textarea {
-  background:
-    #101d18;
-
-  color:
-    #e2eee9;
-}
-
-
-html[data-theme="dark"] .nova-edit-message-box textarea::placeholder {
-  color:
-    #71877e;
-}
-
-
-html[data-theme="dark"] .nova-edit-message-box textarea:focus {
-  background:
-    #13231d;
-
-  box-shadow:
-    inset 0 0 0 1px
-    rgba(82,184,148,0.18);
-}
-
-
-html[data-theme="dark"] .nova-edit-cancel-btn {
-  background:
-    #14221e;
-
-  border-color:
-    #2b4037;
-
-  color:
-    #91a69d;
-}
-
-
-html[data-theme="dark"] .nova-edit-cancel-btn:hover {
-  background:
-    #182a23;
-
-  color:
-    #b0c1ba;
-}
-
-
-/* =========================================================
    AI MESSAGE WRAPPER
 ========================================================= */
 
@@ -720,6 +611,8 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
   display: block;
 
   width: 100%;
+
+  max-width: 100%;
 
   min-width: 0;
 
@@ -736,6 +629,8 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
 
   width: 100%;
 
+  max-width: 100%;
+
   min-width: 0;
 
   padding: 0;
@@ -745,6 +640,8 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
   box-sizing: border-box;
 
   color: #263245;
+
+  overflow: visible;
 }
 
 
@@ -761,12 +658,13 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
 
   width: 100%;
 
-  margin:
-    0
-    0
-    10px;
+  max-width: 100%;
+
+  margin: 0 0 10px;
 
   min-width: 0;
+
+  box-sizing: border-box;
 }
 
 
@@ -799,7 +697,7 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
 
   box-shadow:
     0 6px 16px
-    rgba(66,154,121,0.16);
+    rgba(66, 154, 121, 0.16);
 }
 
 
@@ -811,11 +709,8 @@ html[data-theme="dark"] .nova-edit-cancel-btn:hover {
   font-size: 12px;
 
   font-weight: 650;
-}
 
-
-html[data-theme="dark"] .nova-ai-name {
-  color: #91a79e;
+  white-space: nowrap;
 }
 
 
@@ -840,17 +735,14 @@ html[data-theme="dark"] .nova-ai-name {
 
   word-break: normal;
 
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 
   box-sizing: border-box;
 }
 
 
 .nova-ai-message-content p {
-  margin:
-    0
-    0
-    13px;
+  margin: 0 0 13px;
 
   padding: 0;
 
@@ -859,6 +751,8 @@ html[data-theme="dark"] .nova-ai-name {
   font-size: inherit;
 
   line-height: inherit;
+
+  max-width: 100%;
 }
 
 
@@ -875,14 +769,15 @@ html[data-theme="dark"] .nova-ai-name {
 .nova-ai-message-content h2,
 .nova-ai-message-content h3,
 .nova-ai-message-content h4 {
-  margin:
-    18px
-    0
-    9px;
+  margin: 18px 0 9px;
 
   color: #182235;
 
   line-height: 1.3;
+
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -900,17 +795,20 @@ html[data-theme="dark"] .nova-ai-name {
 
 .nova-ai-message-content ul,
 .nova-ai-message-content ol {
-  margin:
-    10px
-    0
-    14px;
+  margin: 10px 0 14px;
 
   padding-left: 23px;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
 }
 
 
 .nova-ai-message-content li {
   margin-bottom: 5px;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -924,6 +822,10 @@ html[data-theme="dark"] .nova-ai-name {
   text-decoration: underline;
 
   text-underline-offset: 2px;
+
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
 }
 
 
@@ -937,29 +839,28 @@ html[data-theme="dark"] .nova-ai-name {
 ========================================================= */
 
 .nova-ai-message-content blockquote {
-  margin:
-    12px
-    0;
+  margin: 12px 0;
 
-  padding:
-    8px
-    13px;
+  padding: 8px 13px;
 
   border-left:
     3px solid
     #58a98a;
 
   border-radius:
-    0
-    8px
-    8px
-    0;
+    0 8px 8px 0;
 
   background:
-    rgba(79,169,135,0.055);
+    rgba(79, 169, 135, 0.055);
 
   color:
     #637184;
+
+  max-width: 100%;
+
+  box-sizing: border-box;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -972,13 +873,9 @@ html[data-theme="dark"] .nova-ai-name {
 
   max-width: 100%;
 
-  margin:
-    14px
-    0;
+  margin: 14px 0;
 
   border-collapse: collapse;
-
-  overflow: hidden;
 
   border:
     1px solid
@@ -987,20 +884,22 @@ html[data-theme="dark"] .nova-ai-name {
   border-radius: 10px;
 
   font-size: 13px;
+
+  box-sizing: border-box;
 }
 
 
 .nova-ai-message-content th,
 .nova-ai-message-content td {
-  padding:
-    8px
-    10px;
+  padding: 8px 10px;
 
   border:
     1px solid
     #e2e8ec;
 
   text-align: left;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -1020,9 +919,7 @@ html[data-theme="dark"] .nova-ai-name {
 ========================================================= */
 
 .nova-ai-message-content :not(pre) > code {
-  padding:
-    2px
-    5px;
+  padding: 2px 5px;
 
   border-radius: 5px;
 
@@ -1042,7 +939,9 @@ html[data-theme="dark"] .nova-ai-name {
 
   white-space: pre-wrap;
 
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  word-break: break-word;
 }
 
 
@@ -1051,15 +950,64 @@ html[data-theme="dark"] .nova-ai-name {
 ========================================================= */
 
 .nova-ai-message-content pre {
+  width: 100%;
+
   max-width: 100%;
 
-  margin:
-    13px
-    0;
+  margin: 13px 0;
 
   overflow-x: auto;
 
+  overflow-y: hidden;
+
   border-radius: 12px;
+
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.nova-ai-message-content pre code {
+  white-space: pre;
+
+  word-break: normal;
+
+  overflow-wrap: normal;
+}
+
+
+/* =========================================================
+   AI IMAGES
+========================================================= */
+
+.nova-ai-message-content img {
+  display: block;
+
+  max-width: 100%;
+
+  height: auto;
+
+  border-radius: 10px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   AI HORIZONTAL RULE
+========================================================= */
+
+.nova-ai-message-content hr {
+  max-width: 100%;
+
+  border: 0;
+
+  border-top:
+    1px solid
+    #e2e8ec;
+
+  margin: 15px 0;
 }
 
 
@@ -1080,22 +1028,20 @@ html[data-theme="dark"] .nova-ai-name {
 
   width: 100%;
 
+  max-width: 100%;
+
   min-width: 0;
 
-  margin:
-    13px
-    0
-    0;
+  margin: 13px 0 0;
 
-  padding:
-    0;
+  padding: 0;
 
   box-sizing: border-box;
 }
 
 
 /* =========================================================
-   AI ACTION BUTTON
+   ACTION BUTTON BASE
 ========================================================= */
 
 .nova-message-action-btn,
@@ -1114,6 +1060,8 @@ html[data-theme="dark"] .nova-ai-name {
 
   font-family: inherit;
 
+  box-sizing: border-box;
+
   transition:
     background 0.2s ease,
     color 0.2s ease,
@@ -1121,24 +1069,22 @@ html[data-theme="dark"] .nova-ai-name {
 }
 
 
-/* COPY */
+/* =========================================================
+   COPY
+========================================================= */
 
 .nova-message-action-btn {
   height: 30px;
 
   gap: 6px;
 
-  padding:
-    0
-    9px;
+  padding: 0 9px;
 
   border-radius: 8px;
 
-  background:
-    transparent;
+  background: transparent;
 
-  color:
-    #7c8999;
+  color: #7c8999;
 
   font-size: 11px;
 
@@ -1171,11 +1117,9 @@ html[data-theme="dark"] .nova-ai-name {
 
   border-radius: 8px;
 
-  background:
-    transparent;
+  background: transparent;
 
-  color:
-    #8995a4;
+  color: #8995a4;
 
   font-size: 14px;
 }
@@ -1208,7 +1152,7 @@ html[data-theme="dark"] .nova-ai-name {
 
 
 /* =========================================================
-   LIKE ACTIVE
+   LIKE
 ========================================================= */
 
 .nova-message-action-icon.active-like {
@@ -1216,12 +1160,12 @@ html[data-theme="dark"] .nova-ai-name {
     #3f9a78;
 
   background:
-    rgba(79,169,135,0.09);
+    rgba(79, 169, 135, 0.09);
 }
 
 
 /* =========================================================
-   DISLIKE ACTIVE
+   DISLIKE
 ========================================================= */
 
 .nova-message-action-icon.active-dislike {
@@ -1229,7 +1173,7 @@ html[data-theme="dark"] .nova-ai-name {
     #e05a5a;
 
   background:
-    rgba(239,68,68,0.08);
+    rgba(239, 68, 68, 0.08);
 }
 
 
@@ -1242,7 +1186,7 @@ html[data-theme="dark"] .nova-ai-name {
     #4b9e7d;
 
   background:
-    rgba(79,169,135,0.09);
+    rgba(79, 169, 135, 0.09);
 }
 
 
@@ -1255,7 +1199,7 @@ html[data-theme="dark"] .nova-ai-name {
     #4b9e7d;
 
   background:
-    rgba(79,169,135,0.09);
+    rgba(79, 169, 135, 0.09);
 }
 
 
@@ -1269,7 +1213,118 @@ html[data-theme="dark"] .nova-ai-name {
 
 
 /* =========================================================
-   DARK AI
+   DARK MODE — USER
+========================================================= */
+
+html[data-theme="dark"] .nova-user-message-bubble {
+  background:
+    linear-gradient(
+      145deg,
+      #52ad8a,
+      #3d896d
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 9px 25px
+    rgba(0, 0, 0, 0.25);
+}
+
+
+html[data-theme="dark"] .nova-user-edit-btn {
+  background:
+    rgba(17, 30, 25, 0.94);
+
+  border-color:
+    rgba(82, 184, 148, 0.20);
+
+  color:
+    #8fa59c;
+
+  box-shadow:
+    0 4px 15px
+    rgba(0, 0, 0, 0.20);
+}
+
+
+html[data-theme="dark"] .nova-user-edit-btn:hover {
+  background:
+    #14231e;
+
+  color:
+    #70c5a4;
+
+  border-color:
+    rgba(82, 184, 148, 0.36);
+}
+
+
+/* =========================================================
+   DARK MODE — EDIT
+========================================================= */
+
+html[data-theme="dark"] .nova-edit-message-box {
+  background:
+    rgba(12, 23, 19, 0.98);
+
+  border-color:
+    rgba(82, 184, 148, 0.25);
+
+  box-shadow:
+    0 12px 32px
+    rgba(0, 0, 0, 0.30);
+}
+
+
+html[data-theme="dark"] .nova-edit-message-box textarea {
+  background:
+    #101d18;
+
+  color:
+    #e2eee9;
+}
+
+
+html[data-theme="dark"] .nova-edit-message-box textarea::placeholder {
+  color:
+    #71877e;
+}
+
+
+html[data-theme="dark"] .nova-edit-message-box textarea:focus {
+  background:
+    #13231d;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(82, 184, 148, 0.18);
+}
+
+
+html[data-theme="dark"] .nova-edit-cancel-btn {
+  background:
+    #14221e;
+
+  border-color:
+    #2b4037;
+
+  color:
+    #91a69d;
+}
+
+
+html[data-theme="dark"] .nova-edit-cancel-btn:hover {
+  background:
+    #182a23;
+
+  color:
+    #b0c1ba;
+}
+
+
+/* =========================================================
+   DARK MODE — AI
 ========================================================= */
 
 html[data-theme="dark"] .nova-ai-message {
@@ -1293,9 +1348,15 @@ html[data-theme="dark"] .nova-ai-message-content h4 {
 }
 
 
+html[data-theme="dark"] .nova-ai-message-content a {
+  color:
+    #70c5a4;
+}
+
+
 html[data-theme="dark"] .nova-ai-message-content blockquote {
   background:
-    rgba(82,184,148,0.055);
+    rgba(82, 184, 148, 0.055);
 
   color:
     #91a79e;
@@ -1331,6 +1392,12 @@ html[data-theme="dark"] .nova-ai-message-content :not(pre) > code {
 }
 
 
+html[data-theme="dark"] .nova-ai-message-content hr {
+  border-top-color:
+    #294037;
+}
+
+
 html[data-theme="dark"] .nova-message-action-btn,
 html[data-theme="dark"] .nova-message-action-icon {
   color:
@@ -1353,7 +1420,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-like {
     #70c5a4;
 
   background:
-    rgba(82,184,148,0.10);
+    rgba(82, 184, 148, 0.10);
 }
 
 
@@ -1362,58 +1429,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     #ef7777;
 
   background:
-    rgba(239,68,68,0.10);
-}
-
-
-/* =========================================================
-   ANIMATIONS
-========================================================= */
-
-@keyframes novaMessageIn {
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0);
-  }
-}
-
-
-@keyframes novaEditIn {
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0);
-  }
-}
-
-
-@keyframes novaSpin {
-  from {
-    transform:
-      rotate(0deg);
-  }
-
-  to {
-    transform:
-      rotate(360deg);
-  }
+    rgba(239, 68, 68, 0.10);
 }
 
 
@@ -1436,191 +1452,60 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
 /* =========================================================
    MOBILE
+   <= 700px
 ========================================================= */
 
 @media (max-width: 700px) {
 
-  .nova-user-message-bubble {
-    max-width: 86%;
+  /* -----------------------------------------
+     GLOBAL
+  ----------------------------------------- */
 
-    padding:
-      10px
-      13px;
+  .nova-user-message-wrapper,
+  .nova-ai-message-wrapper,
+  .nova-ai-message,
+  .nova-ai-message-content,
+  .nova-user-message-content {
+    width: 100%;
+
+    max-width: 100%;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+  }
+
+
+  /* -----------------------------------------
+     USER BUBBLE
+  ----------------------------------------- */
+
+  .nova-user-message-bubble {
+    width: auto;
+
+    max-width: 88%;
+
+    min-width: 0;
+
+    padding: 10px 13px;
 
     border-radius:
       15px
       15px
       5px
       15px;
-  }
-
-  .nova-user-message-content {
-    font-size: 13px;
-
-    line-height: 1.55;
-  }
-
-  .nova-user-edit-btn {
-    height: 30px;
-
-    padding:
-      0
-      9px;
-
-    font-size: 10px;
-  }
-
-  .nova-edit-message-box {
-    width: 86%;
-
-    padding: 8px;
-
-    border-radius: 15px;
-  }
-
-  .nova-edit-message-box textarea {
-    min-height: 80px;
-
-    font-size: 13px;
-  }
-
-  .nova-ai-message-content {
-    font-size: 13px;
-
-    line-height: 1.65;
-  }
-
-  .nova-message-actions {
-    margin-top: 11px;
-  }
-
-}
-
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 450px) {
-
-  .nova-user-message-bubble {
-    max-width: 90%;
-
-    padding:
-      9px
-      12px;
-  }
-
-  .nova-user-message-content {
-    font-size: 13px;
-  }
-
-  .nova-user-edit-btn span {
-    display: none;
-  }
-
-  .nova-user-edit-btn {
-    width: 30px;
-
-    padding: 0;
-  }
-
-  .nova-edit-message-box {
-    width: 90%;
-  }
-
-  .nova-edit-message-actions {
-    gap: 5px;
-  }
-
-  .nova-edit-cancel-btn,
-  .nova-edit-save-btn {
-    height: 32px;
-
-    padding:
-      0
-      9px;
-  }
-
-  .nova-edit-cancel-btn span,
-  .nova-edit-save-btn span {
-    display: none;
-  }
-
-  .nova-message-action-btn span {
-    display: none;
-  }
-
-  .nova-message-action-btn {
-    width: 30px;
-
-    padding: 0;
-  }
-
-}
-
-
-/* =========================================================
-   REDUCED MOTION
-========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .nova-user-message-bubble,
-  .nova-edit-message-box {
-    animation: none;
-  }
-
-  .icon-spinning {
-    animation: none;
-  }
-
-}
-
-/* =========================================================
-   MOBILE RESPONSIVE PATCH
-   Existing UI / functionality unchanged
-========================================================= */
-
-@media (max-width: 700px) {
-
-  /* -----------------------------------------
-     MESSAGE WRAPPERS
-  ----------------------------------------- */
-
-  .nova-user-message-wrapper,
-  .nova-ai-message-wrapper,
-  .nova-ai-message {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-
-  /* -----------------------------------------
-     USER MESSAGE
-  ----------------------------------------- */
-
-  .nova-user-message-bubble {
-    width: auto;
-    max-width: 88%;
-    min-width: 0;
-
-    padding: 10px 13px;
 
     box-sizing: border-box;
   }
 
 
   .nova-user-message-content {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-
     font-size: 13px;
+
     line-height: 1.55;
 
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
@@ -1629,6 +1514,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     max-width: 100%;
 
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
@@ -1638,17 +1524,16 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     max-width: 100%;
 
     padding-left: 19px;
-
-    overflow-wrap: anywhere;
   }
 
 
   /* -----------------------------------------
-     USER LINKS / CODE
+     USER CODE / LINKS
   ----------------------------------------- */
 
   .nova-user-message-content a {
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
@@ -1657,19 +1542,27 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     max-width: 100%;
 
     white-space: pre-wrap;
+
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
 
   /* -----------------------------------------
-     EDIT MESSAGE
+     EDIT BOX
   ----------------------------------------- */
 
   .nova-edit-message-box {
     width: 88%;
+
     max-width: 100%;
+
     min-width: 0;
+
+    padding: 8px;
+
+    border-radius: 15px;
 
     box-sizing: border-box;
   }
@@ -1677,20 +1570,31 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
   .nova-edit-message-box textarea {
     width: 100%;
+
     max-width: 100%;
+
     min-width: 0;
 
-    box-sizing: border-box;
+    min-height: 80px;
+
+    max-height: 190px;
 
     font-size: 13px;
+
+    box-sizing: border-box;
   }
 
 
   .nova-edit-message-actions {
     width: 100%;
+
     max-width: 100%;
 
+    gap: 6px;
+
     flex-wrap: wrap;
+
+    box-sizing: border-box;
   }
 
 
@@ -1699,15 +1603,15 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
   ----------------------------------------- */
 
   .nova-ai-message-content {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-
     font-size: 13px;
+
     line-height: 1.65;
 
     overflow-wrap: anywhere;
+
     word-break: break-word;
+
+    box-sizing: border-box;
   }
 
 
@@ -1720,25 +1624,29 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     max-width: 100%;
 
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
 
   /* -----------------------------------------
-     HEADINGS
+     MOBILE HEADINGS
   ----------------------------------------- */
 
   .nova-ai-message-content h1 {
     font-size: 21px;
   }
 
+
   .nova-ai-message-content h2 {
     font-size: 18px;
   }
 
+
   .nova-ai-message-content h3 {
     font-size: 16px;
   }
+
 
   .nova-ai-message-content h4 {
     font-size: 14px;
@@ -1746,7 +1654,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
 
   /* -----------------------------------------
-     LISTS
+     MOBILE LISTS
   ----------------------------------------- */
 
   .nova-ai-message-content ul,
@@ -1754,41 +1662,42 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     padding-left: 20px;
 
     max-width: 100%;
-
-    overflow-wrap: anywhere;
   }
 
 
   /* -----------------------------------------
-     BLOCKQUOTE
+     MOBILE BLOCKQUOTE
   ----------------------------------------- */
 
   .nova-ai-message-content blockquote {
     max-width: 100%;
 
-    box-sizing: border-box;
-
     margin: 10px 0;
 
     padding: 7px 10px;
 
+    box-sizing: border-box;
+
     overflow-wrap: anywhere;
+
     word-break: break-word;
   }
 
 
   /* -----------------------------------------
-     TABLE
-     Prevent horizontal page overflow
+     MOBILE TABLE
+     Only table scrolls
   ----------------------------------------- */
 
   .nova-ai-message-content table {
     display: block;
 
     width: 100%;
+
     max-width: 100%;
 
     overflow-x: auto;
+
     overflow-y: hidden;
 
     -webkit-overflow-scrolling: touch;
@@ -1796,6 +1705,8 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     border-radius: 9px;
 
     white-space: nowrap;
+
+    box-sizing: border-box;
   }
 
 
@@ -1812,23 +1723,25 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
 
   /* -----------------------------------------
-     CODE BLOCK
+     MOBILE CODE BLOCK
   ----------------------------------------- */
 
   .nova-ai-message-content pre {
     width: 100%;
-    max-width: 100%;
 
-    box-sizing: border-box;
+    max-width: 100%;
 
     margin: 11px 0;
 
     overflow-x: auto;
+
     overflow-y: hidden;
 
     -webkit-overflow-scrolling: touch;
 
     border-radius: 10px;
+
+    box-sizing: border-box;
   }
 
 
@@ -1836,46 +1749,8 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     white-space: pre;
 
     word-break: normal;
+
     overflow-wrap: normal;
-  }
-
-
-  /* -----------------------------------------
-     AI ACTIONS
-  ----------------------------------------- */
-
-  .nova-message-actions {
-    width: 100%;
-    max-width: 100%;
-
-    gap: 3px;
-
-    margin-top: 10px;
-
-    flex-wrap: wrap;
-  }
-
-
-  .nova-message-action-btn,
-  .nova-message-action-icon {
-    flex: 0 0 auto;
-
-    width: 30px;
-    height: 30px;
-
-    box-sizing: border-box;
-  }
-
-
-  /* Copy becomes icon-only on mobile */
-
-  .nova-message-action-btn span {
-    display: none;
-  }
-
-
-  .nova-message-action-btn {
-    padding: 0;
   }
 
 
@@ -1892,9 +1767,10 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
   .nova-ai-avatar {
     width: 29px;
+
     height: 29px;
 
-    flex-basis: 29px;
+    flex: 0 0 29px;
 
     border-radius: 9px;
 
@@ -1906,11 +1782,55 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     font-size: 11px;
   }
 
+
+  /* -----------------------------------------
+     ACTIONS
+  ----------------------------------------- */
+
+  .nova-message-actions {
+    width: 100%;
+
+    max-width: 100%;
+
+    gap: 3px;
+
+    margin-top: 10px;
+
+    flex-wrap: wrap;
+
+    box-sizing: border-box;
+  }
+
+
+  .nova-message-action-btn,
+  .nova-message-action-icon {
+    width: 30px;
+
+    height: 30px;
+
+    flex: 0 0 30px;
+
+    box-sizing: border-box;
+  }
+
+
+  /* Copy becomes icon only */
+
+  .nova-message-action-btn span {
+    display: none;
+  }
+
+
+  .nova-message-action-btn {
+    padding: 0;
+  }
+
 }
 
 
 /* =========================================================
    SMALL PHONES
+   <= 450px
 ========================================================= */
 
 @media (max-width: 450px) {
@@ -1934,6 +1854,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
   .nova-user-message-content {
     font-size: 13px;
+
     line-height: 1.55;
   }
 
@@ -1990,9 +1911,11 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
     font-size: 20px;
   }
 
+
   .nova-ai-message-content h2 {
     font-size: 17px;
   }
+
 
   .nova-ai-message-content h3 {
     font-size: 15px;
@@ -2039,7 +1962,10 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
   .nova-message-action-btn,
   .nova-message-action-icon {
     width: 29px;
+
     height: 29px;
+
+    flex-basis: 29px;
 
     border-radius: 7px;
   }
@@ -2061,6 +1987,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
   .nova-ai-avatar {
     width: 28px;
+
     height: 28px;
 
     flex-basis: 28px;
@@ -2071,7 +1998,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
 /* =========================================================
    VERY SMALL PHONES
-   e.g. 320px - 375px
+   <= 360px
 ========================================================= */
 
 @media (max-width: 360px) {
@@ -2097,7 +2024,10 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
   .nova-message-action-btn,
   .nova-message-action-icon {
     width: 28px;
+
     height: 28px;
+
+    flex-basis: 28px;
   }
 
 
@@ -2108,6 +2038,7 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
 
   .nova-ai-avatar {
     width: 27px;
+
     height: 27px;
 
     flex-basis: 27px;
@@ -2128,14 +2059,15 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
   .nova-ai-message-content,
   .nova-user-message-content {
     overflow-x: hidden;
+
+    max-width: 100%;
   }
 
-
-  /* Don't allow markdown elements to push page width */
 
   .nova-ai-message-content img,
   .nova-user-message-content img {
     max-width: 100%;
+
     height: auto;
   }
 
@@ -2143,6 +2075,82 @@ html[data-theme="dark"] .nova-message-action-icon.active-dislike {
   .nova-ai-message-content hr,
   .nova-user-message-content hr {
     max-width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .nova-user-message-bubble,
+  .nova-edit-message-box {
+    animation: none;
+  }
+
+
+  .icon-spinning {
+    animation: none;
+  }
+
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes novaMessageIn {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+@keyframes novaEditIn {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+@keyframes novaSpin {
+
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
   }
 
 }

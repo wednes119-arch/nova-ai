@@ -37,22 +37,28 @@ export default function ChatBox({ chat, loading }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
-  // =====================================================
-// WELCOME
-// =====================================================
-
-const [showWelcome, setShowWelcome] = useState(true);
-
-
-// =====================================================
-// WELCOME VOICE LOCK
+ // =====================================================
+// WELCOME VOICE — DUPLICATE FIXED
 // =====================================================
 
 // IMPORTANT:
-// Ye ref voice ko sirf ONE TIME play hone dega.
-// React StrictMode / voiceschanged / fallback timer
-// ki wajah se double voice nahi chalegi.
-const welcomeSpeechStartedRef = useRef(false);
+// Ye global browser-level lock hai.
+// React StrictMode / remount / voiceschanged
+// ki wajah se welcome voice dobara nahi chalegi.
+
+const NOVA_WELCOME_VOICE_PLAYED =
+  "__nova_welcome_voice_played__";
+
+const NOVA_WELCOME_UTTERANCE =
+  "__nova_welcome_utterance__";
+
+
+// =====================================================
+// WELCOME
+// =====================================================
+
+const [showWelcome, setShowWelcome] =
+  useState(true);
 
 
 // =====================================================
@@ -62,11 +68,15 @@ const welcomeSpeechStartedRef = useRef(false);
 useEffect(() => {
 
   const timer = setTimeout(() => {
+
     setShowWelcome(false);
+
   }, 5000);
 
   return () => {
+
     clearTimeout(timer);
+
   };
 
 }, []);
@@ -93,9 +103,29 @@ useEffect(() => {
     window.speechSynthesis;
 
   let cancelled = false;
-  let fallbackTimer = null;
+
   let voicesTimer = null;
+  let fallbackTimer = null;
   let speakTimer = null;
+
+
+  // ===================================================
+  // GLOBAL DUPLICATE LOCK
+  // ===================================================
+
+  if (
+    window[
+      NOVA_WELCOME_VOICE_PLAYED
+    ] === true
+  ) {
+
+    console.log(
+      "Nova welcome voice already played."
+    );
+
+    return () => {};
+
+  }
 
 
   // ===================================================
@@ -127,13 +157,9 @@ useEffect(() => {
     ];
 
 
-    // -------------------------------------------------
     // Preferred voices
-    // -------------------------------------------------
-
     for (
-      const preferredName
-      of preferredNames
+      const preferredName of preferredNames
     ) {
 
       const match =
@@ -146,16 +172,15 @@ useEffect(() => {
         );
 
       if (match) {
+
         return match;
+
       }
 
     }
 
 
-    // -------------------------------------------------
     // Female voice fallback
-    // -------------------------------------------------
-
     const femaleVoice =
       voices.find((voice) =>
         /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
@@ -165,14 +190,13 @@ useEffect(() => {
       );
 
     if (femaleVoice) {
+
       return femaleVoice;
+
     }
 
 
-    // -------------------------------------------------
     // English voice fallback
-    // -------------------------------------------------
-
     const englishVoice =
       voices.find((voice) =>
         /^en(-|_)/i.test(
@@ -194,53 +218,69 @@ useEffect(() => {
 
   const speakWelcome = () => {
 
-    // -------------------------------------------------
-    // CRITICAL DUPLICATE PROTECTION
-    // -------------------------------------------------
-
-    if (
-      cancelled ||
-      welcomeSpeechStartedRef.current
-    ) {
+    if (cancelled) {
       return;
     }
 
 
-    // -------------------------------------------------
-    // Check available voices
-    // -------------------------------------------------
+    // =================================================
+    // CHECK GLOBAL LOCK
+    // =================================================
+
+    if (
+      window[
+        NOVA_WELCOME_VOICE_PLAYED
+      ] === true
+    ) {
+
+      console.log(
+        "Duplicate welcome voice blocked."
+      );
+
+      return;
+
+    }
+
+
+    // =================================================
+    // DO NOT INTERRUPT OTHER SPEECH
+    // =================================================
+
+    if (
+      speech.speaking ||
+      speech.pending
+    ) {
+
+      console.log(
+        "Speech engine busy. Welcome voice skipped."
+      );
+
+      return;
+
+    }
+
+
+    // =================================================
+    // GET VOICES
+    // =================================================
 
     const voices =
       speech.getVoices();
 
     if (!voices.length) {
+
       return;
+
     }
 
 
-    // -------------------------------------------------
-    // LOCK IMMEDIATELY
-    //
-    // VERY IMPORTANT:
-    // Lock BEFORE speech.speak()
-    //
-    // This prevents:
-    // - voiceschanged duplicate
-    // - fallback timer duplicate
-    // - React StrictMode duplicate
-    // -------------------------------------------------
+    // =================================================
+    // LOCK BEFORE SPEAK()
+    // =================================================
 
-    welcomeSpeechStartedRef.current =
-      true;
-
-
-    // -------------------------------------------------
-    // Stop any old queued speech
-    // -------------------------------------------------
-
-    try {
-      speech.cancel();
-    } catch {}
+    window[
+      NOVA_WELCOME_VOICE_PLAYED
+    ] = true;
 
 
     // =================================================
@@ -256,13 +296,6 @@ useEffect(() => {
     // =================================================
     // VOICE SETTINGS
     // =================================================
-
-    /*
-     * 1.0 = natural normal speed.
-     *
-     * 0.72 was too slow on mobile.
-     * 1.0 should sound natural.
-     */
 
     utterance.rate =
       1.0;
@@ -281,6 +314,7 @@ useEffect(() => {
     const selectedVoice =
       getBestVoice();
 
+
     if (selectedVoice) {
 
       utterance.voice =
@@ -296,37 +330,63 @@ useEffect(() => {
 
 
     // =================================================
-    // EVENTS
+    // SAVE CURRENT UTTERANCE
+    // =================================================
+
+    window[
+      NOVA_WELCOME_UTTERANCE
+    ] = utterance;
+
+
+    // =================================================
+    // ON START
     // =================================================
 
     utterance.onstart = () => {
 
       console.log(
-        "Nova welcome voice started"
+        "Nova welcome voice STARTED"
       );
 
     };
 
+
+    // =================================================
+    // ON END
+    // =================================================
 
     utterance.onend = () => {
 
       console.log(
-        "Nova welcome voice completed"
+        "Nova welcome voice COMPLETED"
       );
 
-      /*
-       * Voice complete hone ke baad welcome
-       * screen ko close kar do.
-       *
-       * Timer bhi safety fallback hai.
-       */
+
+      if (
+        window[
+          NOVA_WELCOME_UTTERANCE
+        ] === utterance
+      ) {
+
+        window[
+          NOVA_WELCOME_UTTERANCE
+        ] = null;
+
+      }
+
 
       if (!cancelled) {
+
         setShowWelcome(false);
+
       }
 
     };
 
+
+    // =================================================
+    // ON ERROR
+    // =================================================
 
     utterance.onerror = (event) => {
 
@@ -335,13 +395,24 @@ useEffect(() => {
         event
       );
 
-      /*
-       * Agar browser speech fail kare,
-       * user welcome screen par stuck nahi hoga.
-       */
+
+      if (
+        window[
+          NOVA_WELCOME_UTTERANCE
+        ] === utterance
+      ) {
+
+        window[
+          NOVA_WELCOME_UTTERANCE
+        ] = null;
+
+      }
+
 
       if (!cancelled) {
+
         setShowWelcome(false);
+
       }
 
     };
@@ -358,6 +429,19 @@ useEffect(() => {
           return;
         }
 
+
+        // Final duplicate protection
+        if (
+          window[
+            NOVA_WELCOME_VOICE_PLAYED
+          ] !== true
+        ) {
+
+          return;
+
+        }
+
+
         try {
 
           speech.speak(
@@ -371,13 +455,25 @@ useEffect(() => {
             error
           );
 
-          if (!cancelled) {
-            setShowWelcome(false);
+
+          if (
+            window[
+              NOVA_WELCOME_UTTERANCE
+            ] === utterance
+          ) {
+
+            window[
+              NOVA_WELCOME_UTTERANCE
+            ] = null;
+
           }
+
+
+          setShowWelcome(false);
 
         }
 
-      }, 100);
+      }, 150);
 
   };
 
@@ -388,25 +484,28 @@ useEffect(() => {
 
   const handleVoicesChanged = () => {
 
-    if (
-      cancelled ||
-      welcomeSpeechStartedRef.current
-    ) {
+    if (cancelled) {
       return;
     }
 
 
-    /*
-     * Some mobile browsers fire voiceschanged
-     * multiple times.
-     *
-     * Clear previous timer first.
-     */
+    if (
+      window[
+        NOVA_WELCOME_VOICE_PLAYED
+      ] === true
+    ) {
+
+      return;
+
+    }
+
 
     if (voicesTimer) {
+
       clearTimeout(
         voicesTimer
       );
+
     }
 
 
@@ -415,7 +514,9 @@ useEffect(() => {
 
         if (
           !cancelled &&
-          !welcomeSpeechStartedRef.current
+          window[
+            NOVA_WELCOME_VOICE_PLAYED
+          ] !== true
         ) {
 
           speakWelcome();
@@ -428,7 +529,7 @@ useEffect(() => {
 
 
   // ===================================================
-  // LISTENER
+  // ADD LISTENER
   // ===================================================
 
   speech.addEventListener(
@@ -438,7 +539,7 @@ useEffect(() => {
 
 
   // ===================================================
-  // TRY IMMEDIATELY
+  // FIRST ATTEMPT
   // ===================================================
 
   speakWelcome();
@@ -448,27 +549,21 @@ useEffect(() => {
   // FALLBACK
   // ===================================================
 
-  /*
-   * Agar voices initially available nahi hain,
-   * to ye fallback dobara try karega.
-   *
-   * Lekin welcomeSpeechStartedRef ki wajah se
-   * duplicate voice nahi chalegi.
-   */
-
   fallbackTimer =
     setTimeout(() => {
 
       if (
         !cancelled &&
-        !welcomeSpeechStartedRef.current
+        window[
+          NOVA_WELCOME_VOICE_PLAYED
+        ] !== true
       ) {
 
         speakWelcome();
 
       }
 
-    }, 800);
+    }, 1000);
 
 
   // ===================================================
@@ -480,7 +575,15 @@ useEffect(() => {
     cancelled = true;
 
 
-    // Clear timers
+    if (voicesTimer) {
+
+      clearTimeout(
+        voicesTimer
+      );
+
+    }
+
+
     if (fallbackTimer) {
 
       clearTimeout(
@@ -489,13 +592,6 @@ useEffect(() => {
 
     }
 
-    if (voicesTimer) {
-
-      clearTimeout(
-        voicesTimer
-      );
-
-    }
 
     if (speakTimer) {
 
@@ -506,20 +602,18 @@ useEffect(() => {
     }
 
 
-    // Remove voice listener
     speech.removeEventListener(
       "voiceschanged",
       handleVoicesChanged
     );
 
 
-    /*
-     * Stop currently playing welcome speech.
-     */
-
-    try {
-      speech.cancel();
-    } catch {}
+    // IMPORTANT:
+    // YAHAN speech.cancel() NAHI KARNA.
+    //
+    // React StrictMode mein cleanup ke waqt
+    // speech.cancel() karne se duplicate/race
+    // problems aa sakti hain.
 
   };
 

@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -38,349 +37,256 @@ export default function ChatBox({ chat, loading }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
+  // =====================================================
+  // WELCOME
+  // =====================================================
+
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  
 
   // =====================================================
-// WELCOME
-// =====================================================
+  // WELCOME VOICE
+  // =====================================================
 
-const [showWelcome, setShowWelcome] = useState(true);
+  useEffect(() => {
 
-
-// =====================================================
-// WELCOME SCREEN TIMER
-// =====================================================
-
-useEffect(() => {
-
-  // Keep the welcome screen visible until
-  // the complete voice message finishes.
-  const timer = setTimeout(() => {
-
-    setShowWelcome(false);
-
-  }, 6500);
-
-  return () => {
-
-    clearTimeout(timer);
-
-  };
-
-}, []);
-
-
-// =====================================================
-// WELCOME VOICE
-// =====================================================
-
-useEffect(() => {
-
-  if (!showWelcome) return;
-
-  if (!("speechSynthesis" in window)) {
-    return;
-  }
-
-  let cancelled = false;
-  let speechStarted = false;
-  let fallbackTimer = null;
-
-
-  // ===================================================
-  // FIND BEST FEMALE VOICE
-  // ===================================================
-
-  const getBestFemaleVoice = () => {
-
-    const voices =
-      window.speechSynthesis.getVoices();
-
-    if (!voices.length) {
-      return null;
-    }
-
-
-    // Exact / highly preferred voices
-    const preferredNames = [
-
-      "Samantha",
-      "Karen",
-      "Victoria",
-      "Ava",
-      "Jenny",
-      "Aria",
-      "Zira",
-      "Susan",
-      "Google US English",
-      "Microsoft Jenny",
-      "Microsoft Aria",
-      "Microsoft Zira",
-
-    ];
-
-
-    // First try preferred voices
-    for (
-      const preferredName of preferredNames
-    ) {
-
-      const match =
-        voices.find((voice) =>
-
-          voice.name
-            .toLowerCase()
-            .includes(
-              preferredName.toLowerCase()
-            )
-
-        );
-
-      if (match) {
-        return match;
-      }
-
-    }
-
-
-    // Female-sounding fallback
-    const femaleVoice =
-      voices.find((voice) =>
-
-        /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
-          .test(
-            voice.name
-          )
-
-      );
-
-
-    if (femaleVoice) {
-      return femaleVoice;
-    }
-
-
-    // English voice fallback
-    const englishVoice =
-      voices.find((voice) =>
-
-        /^en(-|_)/i.test(
-          voice.lang
-        )
-
-      );
-
-
-    return englishVoice || voices[0];
-
-  };
-
-
-  // ===================================================
-  // SPEAK
-  // ===================================================
-
-  const speakWelcome = () => {
+    if (!showWelcome) return;
 
     if (
-      cancelled ||
-      speechStarted
+      typeof window === "undefined" ||
+      !("speechSynthesis" in window)
     ) {
-
       return;
-
     }
 
+    let cancelled = false;
+    let speechStarted = false;
+    let fallbackTimer = null;
 
-    const voices =
-      window.speechSynthesis.getVoices();
+    const getBestVoice = () => {
 
+      const voices =
+        window.speechSynthesis.getVoices();
 
-    if (!voices.length) {
+      if (!voices.length) {
+        return null;
+      }
 
-      return;
+      const preferredNames = [
+        "Samantha",
+        "Karen",
+        "Victoria",
+        "Ava",
+        "Jenny",
+        "Aria",
+        "Zira",
+        "Susan",
+        "Google US English",
+        "Microsoft Jenny",
+        "Microsoft Aria",
+        "Microsoft Zira",
+      ];
 
-    }
+      for (const preferredName of preferredNames) {
 
+        const match =
+          voices.find((voice) =>
+            voice.name
+              ?.toLowerCase()
+              .includes(
+                preferredName.toLowerCase()
+              )
+          );
 
-    speechStarted = true;
+        if (match) {
+          return match;
+        }
+      }
 
+      const femaleVoice =
+        voices.find((voice) =>
+          /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
+            .test(voice.name || "")
+        );
 
-    // Stop anything already speaking
-    window.speechSynthesis.cancel();
+      if (femaleVoice) {
+        return femaleVoice;
+      }
 
+      const englishVoice =
+        voices.find((voice) =>
+          /^en(-|_)/i.test(
+            voice.lang || ""
+          )
+        );
 
-    // =================================================
-    // WELCOME MESSAGE
-    // =================================================
-
-    const text =
-      "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan.";
-
-
-    const utterance =
-      new SpeechSynthesisUtterance(
-        text
-      );
-
-
-    // =================================================
-    // PREMIUM FEMALE-STYLE SETTINGS
-    // =================================================
-
-    // Slightly slower and smoother
-    utterance.rate = 0.72;
-
-    // Softer female-style pitch
-    utterance.pitch = 1.15;
-
-    // Full volume
-    utterance.volume = 1;
-
-
-    // =================================================
-    // SELECT VOICE
-    // =================================================
-
-    const selectedVoice =
-      getBestFemaleVoice();
-
-
-    if (selectedVoice) {
-
-      utterance.voice =
-        selectedVoice;
-
-      console.log(
-        "Nova welcome voice:",
-        selectedVoice.name,
-        selectedVoice.lang
-      );
-
-    }
-
-
-    // =================================================
-    // EVENTS
-    // =================================================
-
-    utterance.onstart = () => {
-
-      console.log(
-        "Nova welcome voice started"
-      );
-
+      return englishVoice || voices[0];
     };
 
+    const speakWelcome = () => {
 
-    utterance.onend = () => {
+      if (
+        cancelled ||
+        speechStarted
+      ) {
+        return;
+      }
 
-      console.log(
-        "Nova welcome voice completed"
-      );
+      const voices =
+        window.speechSynthesis.getVoices();
 
-    };
+      if (!voices.length) {
+        return;
+      }
 
+      speechStarted = true;
 
-    utterance.onerror = (event) => {
+      window.speechSynthesis.cancel();
 
-      console.log(
-        "Nova welcome voice error:",
-        event
-      );
+      const utterance =
+        new SpeechSynthesisUtterance(
+          "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan."
+        );
 
-    };
+      /*
+ * MOBILE OPTIMIZED WELCOME VOICE
+ * --------------------------------
+ * 1.0 = natural speaking speed
+ * Avoid very low rates because some mobile
+ * browsers make them sound extremely slow.
+ */
 
+utterance.rate = 1.0;
+utterance.pitch = 1.05;
+utterance.volume = 1;
 
-    // =================================================
-    // SPEAK
-    // =================================================
+const selectedVoice = getBestVoice();
+
+if (selectedVoice) {
+  utterance.voice = selectedVoice;
+
+  console.log(
+    "Nova welcome voice:",
+    selectedVoice.name,
+    selectedVoice.lang
+  );
+}
+
+utterance.onstart = () => {
+  console.log(
+    "Nova welcome voice started"
+  );
+};
+
+utterance.onend = () => {
+  console.log(
+    "Nova welcome voice completed"
+  );
+
+  /*
+   * IMPORTANT:
+   * Don't hide the welcome screen using
+   * a fixed timer. Hide it only when voice
+   * has actually finished.
+   */
+  if (!cancelled) {
+    setShowWelcome(false);
+  }
+};
+
+utterance.onerror = (event) => {
+  console.log(
+    "Nova welcome voice error:",
+    event
+  );
+
+  /*
+   * If mobile browser fails to speak,
+   * don't leave the user stuck on
+   * the welcome screen.
+   */
+  if (!cancelled) {
+    setShowWelcome(false);
+  }
+};
+
+if (!cancelled) {
+  /*
+   * Cancel any previous speech before
+   * starting a fresh welcome message.
+   */
+  window.speechSynthesis.cancel();
+
+  /*
+   * Small delay helps mobile browsers
+   * initialize the speech engine properly.
+   */
+  setTimeout(() => {
 
     if (!cancelled) {
-
       window.speechSynthesis.speak(
         utterance
       );
-
     }
 
-  };
+  }, 100);
+}
 
+const handleVoicesChanged = () => {
 
-  // ===================================================
-  // VOICES CHANGED
-  // ===================================================
+  if (cancelled) return;
 
-  const handleVoicesChanged = () => {
+  /*
+   * Wait briefly for mobile browsers
+   * to finish loading available voices.
+   */
+  setTimeout(() => {
 
-    if (cancelled) return;
+    if (!cancelled) {
+      speakWelcome();
+    }
 
+  }, 200);
 
-    // Wait a little so the browser fully loads voices
-    setTimeout(() => {
+};
 
-      if (!cancelled) {
+window.speechSynthesis.addEventListener(
+  "voiceschanged",
+  handleVoicesChanged
+);
 
-        speakWelcome();
+fallbackTimer = setTimeout(() => {
 
-      }
+  if (!cancelled) {
+    speakWelcome();
+  }
 
-    }, 250);
+}, 600);
 
-  };
+return () => {
 
+  cancelled = true;
+  speechStarted = false;
 
-  window.speechSynthesis.addEventListener(
+  if (fallbackTimer) {
+    clearTimeout(
+      fallbackTimer
+    );
+  }
+
+  window.speechSynthesis.removeEventListener(
     "voiceschanged",
     handleVoicesChanged
   );
 
+  /*
+   * Stop speech only when this effect
+   * is genuinely being cleaned up.
+   */
+  window.speechSynthesis.cancel();
 
-  // ===================================================
-  // INITIAL ATTEMPT
-  // ===================================================
-
-  fallbackTimer = setTimeout(() => {
-
-    if (!cancelled) {
-
-      speakWelcome();
-
-    }
-
-  }, 700);
-
-
-  // ===================================================
-  // CLEANUP
-  // ===================================================
-
-  return () => {
-
-    cancelled = true;
-
-    speechStarted = false;
-
-
-    if (fallbackTimer) {
-
-      clearTimeout(
-        fallbackTimer
-      );
-
-    }
-
-
-    window.speechSynthesis.removeEventListener(
-      "voiceschanged",
-      handleVoicesChanged
-    );
-
-
-    window.speechSynthesis.cancel();
-
-  };
-
-}, [showWelcome]);
+};
 
 
   // =====================================================
@@ -417,16 +323,16 @@ useEffect(() => {
       const enabled =
         event.detail?.enabled ?? true;
 
-      setChatHistoryEnabled(enabled);
+      setChatHistoryEnabled(
+        enabled
+      );
 
     };
-
 
     window.addEventListener(
       "nova-chat-history-changed",
       handleHistoryChange
     );
-
 
     return () => {
 
@@ -498,9 +404,11 @@ useEffect(() => {
   // REFS
   // =====================================================
 
-  const bottomRef = useRef(null);
+  const bottomRef =
+    useRef(null);
 
-  const fileInputRef = useRef(null);
+  const fileInputRef =
+    useRef(null);
 
   const mediaRecorderRef =
     useRef(null);
@@ -509,6 +417,9 @@ useEffect(() => {
     useRef([]);
 
   const audioRef =
+    useRef(null);
+
+  const audioUrlRef =
     useRef(null);
 
   const silenceTimer =
@@ -526,6 +437,46 @@ useEffect(() => {
   const animationRef =
     useRef(null);
 
+  const recordingRef =
+    useRef(false);
+
+  const speakingRef =
+    useRef(false);
+
+  const voiceModeRef =
+    useRef(false);
+
+  const sendingRef =
+    useRef(false);
+
+  const restartingVoiceRef =
+    useRef(false);
+
+
+  // =====================================================
+  // KEEP REFS IN SYNC
+  // =====================================================
+
+  useEffect(() => {
+    recordingRef.current =
+      recording;
+  }, [recording]);
+
+  useEffect(() => {
+    speakingRef.current =
+      isSpeaking;
+  }, [isSpeaking]);
+
+  useEffect(() => {
+    voiceModeRef.current =
+      voiceMode;
+  }, [voiceMode]);
+
+  useEffect(() => {
+    sendingRef.current =
+      sending;
+  }, [sending]);
+
 
   // =====================================================
   // SCROLL
@@ -540,16 +491,22 @@ useEffect(() => {
 
     if (!container) return;
 
-    container.scrollTo({
+    try {
 
-      top: container.scrollHeight,
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior:
+          smooth
+            ? "smooth"
+            : "auto",
+      });
 
-      behavior:
-        smooth
-          ? "smooth"
-          : "auto",
+    } catch {
 
-    });
+      container.scrollTop =
+        container.scrollHeight;
+
+    }
 
   };
 
@@ -594,19 +551,51 @@ useEffect(() => {
 
   useEffect(() => {
 
-    if (!voiceMode) return;
+    voiceModeRef.current =
+      voiceMode;
+
+    if (!voiceMode) {
+      return;
+    }
+
+    /*
+     * Don't immediately start recording if:
+     * - AI is speaking
+     * - AI is thinking
+     * - already recording
+     */
 
     if (
-      !recording &&
-      !isSpeaking &&
+      !recordingRef.current &&
+      !speakingRef.current &&
       !isThinking
     ) {
 
-      startRecording();
+      const timer =
+        setTimeout(() => {
+
+          if (
+            voiceModeRef.current &&
+            !recordingRef.current &&
+            !speakingRef.current
+          ) {
+
+            startRecording();
+
+          }
+
+        }, 350);
+
+      return () => {
+        clearTimeout(timer);
+      };
 
     }
 
-  }, [voiceMode]);
+  }, [
+    voiceMode,
+    isThinking,
+  ]);
 
 
   // =====================================================
@@ -625,51 +614,70 @@ useEffect(() => {
         animationRef.current
       );
 
+      try {
 
-      if (audioContextRef.current) {
+        if (
+          audioContextRef.current
+        ) {
 
-        audioContextRef.current
-          .close()
-          .catch(() => {});
-
-      }
-
-
-      if (audioRef.current) {
-
-        audioRef.current.pause();
-
-        audioRef.current.src = "";
-
-      }
-
-
-      if (
-        mediaRecorderRef.current?.stream
-      ) {
-
-        mediaRecorderRef.current.stream
-          .getTracks()
-          .forEach((track) => {
-            track.stop();
-          });
-
-      }
-
-
-      messages.forEach((message) => {
-
-        if (message?.imageUrl) {
-
-          try {
-            URL.revokeObjectURL(
-              message.imageUrl
-            );
-          } catch {}
+          audioContextRef.current
+            .close()
+            .catch(() => {});
 
         }
 
-      });
+      } catch {}
+
+
+      try {
+
+        if (
+          audioRef.current
+        ) {
+
+          audioRef.current.pause();
+
+          audioRef.current.removeAttribute(
+            "src"
+          );
+
+          audioRef.current.load();
+
+        }
+
+      } catch {}
+
+
+      try {
+
+        if (
+          mediaRecorderRef.current?.stream
+        ) {
+
+          mediaRecorderRef.current.stream
+            .getTracks()
+            .forEach((track) => {
+              track.stop();
+            });
+
+        }
+
+      } catch {}
+
+
+      if (
+        audioUrlRef.current
+      ) {
+
+        try {
+
+          URL.revokeObjectURL(
+            audioUrlRef.current
+          );
+
+        } catch {}
+
+      }
 
     };
 
@@ -680,18 +688,20 @@ useEffect(() => {
   // LOAD HISTORY
   // =====================================================
 
-  async function loadMessages(chatId) {
+  async function loadMessages(
+    chatId
+  ) {
 
     try {
 
-      const res = await api.get(
-        `/chat/history/${chatId}`
-      );
+      const res =
+        await api.get(
+          `/chat/history/${chatId}`
+        );
 
       setMessages(
         res.data.messages || []
       );
-
 
       requestAnimationFrame(() => {
         scrollToBottom(false);
@@ -722,19 +732,12 @@ useEffect(() => {
 
     if (!file) return;
 
-
     const allowedTypes = [
-
       "application/pdf",
-
       "image/jpeg",
-
       "image/png",
-
       "image/webp",
-
     ];
-
 
     if (
       !allowedTypes.includes(
@@ -750,10 +753,8 @@ useEffect(() => {
 
     }
 
-
     const maxSize =
       20 * 1024 * 1024;
-
 
     if (file.size > maxSize) {
 
@@ -765,7 +766,6 @@ useEffect(() => {
 
     }
 
-
     const formData =
       new FormData();
 
@@ -774,23 +774,21 @@ useEffect(() => {
       file
     );
 
-
     try {
 
       setIsThinking(true);
 
-
-      const res = await api.post(
-        "/files/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
-
+      const res =
+        await api.post(
+          "/files/upload",
+          formData,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
 
       setSelectedFile(file);
 
@@ -801,7 +799,6 @@ useEffect(() => {
       setUploadedFileType(
         res.data.file_category
       );
-
 
       if (
         res.data.file_category ===
@@ -827,17 +824,11 @@ useEffect(() => {
         err
       );
 
-
       toast.error(
-
         err.response?.data?.detail ||
-
         err.response?.data?.message ||
-
         "File upload failed"
-
       );
-
 
       clearSelectedFile();
 
@@ -868,17 +859,15 @@ useEffect(() => {
 
     }
 
-
-    const res = await api.post(
-      "/files/ask-image",
-      {
-        file_id:
-          uploadedFileId,
-
-        question,
-      }
-    );
-
+    const res =
+      await api.post(
+        "/files/ask-image",
+        {
+          file_id:
+            uploadedFileId,
+          question,
+        }
+      );
 
     return (
       res.data.answer || ""
@@ -898,7 +887,6 @@ useEffect(() => {
     const cleanPrompt =
       prompt?.trim();
 
-
     if (!cleanPrompt) {
 
       toast.error(
@@ -908,7 +896,6 @@ useEffect(() => {
       return;
 
     }
-
 
     if (!chat) {
 
@@ -920,66 +907,43 @@ useEffect(() => {
 
     }
 
-
     if (
       generatingImage ||
       sending
     ) {
-
       return;
-
     }
-
 
     try {
 
       setGeneratingImage(true);
-
       setSending(true);
-
       setIsThinking(true);
 
-
-      // USER MESSAGE
-
       setMessages((prev) => [
-
         ...prev,
-
         {
           role: "user",
           content: cleanPrompt,
         },
-
       ]);
-
 
       setText("");
 
-
       requestAnimationFrame(() => {
-
         scrollToBottom(true);
-
       });
 
-
-      // API REQUEST
-
-      const res = await api.post(
-
-        "/files/generate-image",
-
-        {
-          prompt: cleanPrompt,
-        },
-
-        {
-          responseType: "blob",
-        }
-
-      );
-
+      const res =
+        await api.post(
+          "/files/generate-image",
+          {
+            prompt: cleanPrompt,
+          },
+          {
+            responseType: "blob",
+          }
+        );
 
       if (
         !res.data ||
@@ -992,33 +956,24 @@ useEffect(() => {
 
       }
 
-
       const imageUrl =
         URL.createObjectURL(
           res.data
         );
 
-
-      // ASSISTANT IMAGE
-
       setMessages((prev) => [
-
         ...prev,
-
         {
           role: "assistant",
           content: "",
           imageUrl,
           isGeneratedImage: true,
         },
-
       ]);
-
 
       toast.success(
         "Image generated successfully!"
       );
-
 
     } catch (err) {
 
@@ -1027,10 +982,8 @@ useEffect(() => {
         err
       );
 
-
       let message =
         "Image generation failed.";
-
 
       if (
         err.response?.data
@@ -1044,63 +997,45 @@ useEffect(() => {
               .data
               .text();
 
-
           const parsed =
             JSON.parse(
               errorText
             );
-
 
           message =
             parsed.detail ||
             parsed.message ||
             message;
 
-        } catch {
-
-          // Keep default
-
-        }
+        } catch {}
 
       } else {
 
         message =
           err.response?.data
             ?.detail ||
-
           err.response?.data
             ?.message ||
-
           err.message ||
-
           message;
 
       }
 
-
       toast.error(message);
 
-
       setMessages((prev) => [
-
         ...prev,
-
         {
           role: "assistant",
-
           content:
             "Sorry, I couldn't generate that image. Please try again.",
-
         },
-
       ]);
 
     } finally {
 
       setGeneratingImage(false);
-
       setSending(false);
-
       setIsThinking(false);
 
     }
@@ -1118,17 +1053,29 @@ useEffect(() => {
       silenceTimer.current
     );
 
+    /*
+     * 6 seconds is okay for normal recording.
+     * In voice mode we keep it slightly shorter
+     * after silence so the conversation feels responsive.
+     */
+
+    const timeout =
+      voiceModeRef.current
+        ? 4500
+        : 6000;
 
     silenceTimer.current =
       setTimeout(() => {
 
-        if (recording) {
+        if (
+          recordingRef.current
+        ) {
 
           stopRecording();
 
         }
 
-      }, 6000);
+      }, timeout);
 
   }
 
@@ -1141,7 +1088,7 @@ useEffect(() => {
 
     try {
 
-      if (recording) {
+      if (recordingRef.current) {
 
         stopRecording();
 
@@ -1173,44 +1120,68 @@ useEffect(() => {
 
   async function startRecording() {
 
-    if (recording) return;
+    if (
+      recordingRef.current
+    ) {
+      return;
+    }
 
+    if (
+      restartingVoiceRef.current
+    ) {
+      return;
+    }
 
-    if (isSpeaking) {
+    if (speakingRef.current) {
 
       stopSpeaking();
 
     }
 
-
     if (
       !navigator.mediaDevices ||
-      !navigator.mediaDevices
-        .getUserMedia
+      !navigator.mediaDevices.getUserMedia
     ) {
 
       toast.error(
-        "Microphone is not supported"
+        "Microphone is not supported on this device."
       );
 
       return;
 
     }
 
-
     try {
+
+      /*
+       * Make sure previous recorder is dead.
+       */
+
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !==
+          "inactive"
+      ) {
+
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {}
+
+      }
 
       const stream =
         await navigator.mediaDevices
           .getUserMedia({
-            audio: true,
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
           });
-
 
       const AudioContextClass =
         window.AudioContext ||
         window.webkitAudioContext;
-
 
       if (!AudioContextClass) {
 
@@ -1228,10 +1199,26 @@ useEffect(() => {
 
       }
 
+      /*
+       * Mobile Safari/Chrome can suspend AudioContext.
+       */
 
       audioContextRef.current =
         new AudioContextClass();
 
+      if (
+        audioContextRef.current.state ===
+        "suspended"
+      ) {
+
+        try {
+
+          await audioContextRef.current
+            .resume();
+
+        } catch {}
+
+      }
 
       const source =
         audioContextRef.current
@@ -1239,20 +1226,19 @@ useEffect(() => {
             stream
           );
 
-
       analyserRef.current =
         audioContextRef.current
           .createAnalyser();
 
-
       analyserRef.current.fftSize =
         256;
 
+      analyserRef.current.smoothingTimeConstant =
+        0.75;
 
       source.connect(
         analyserRef.current
       );
-
 
       const dataArray =
         new Uint8Array(
@@ -1260,22 +1246,21 @@ useEffect(() => {
             .frequencyBinCount
         );
 
-
       function detectVoice() {
 
         if (
-          !analyserRef.current
-        ) return;
-
+          !analyserRef.current ||
+          !recordingRef.current
+        ) {
+          return;
+        }
 
         analyserRef.current
           .getByteFrequencyData(
             dataArray
           );
 
-
         let sum = 0;
-
 
         for (
           let i = 0;
@@ -1287,25 +1272,21 @@ useEffect(() => {
 
         }
 
-
         const average =
           dataArray.length
             ? sum /
               dataArray.length
             : 0;
 
-
         setVoiceLevel(
           average
         );
-
 
         setVoiceData(
           Array.from(
             dataArray
           ).slice(0, 32)
         );
-
 
         animationRef.current =
           requestAnimationFrame(
@@ -1314,27 +1295,55 @@ useEffect(() => {
 
       }
 
-
-      detectVoice();
-
-
-      // =================================================
-      // MEDIA RECORDER
-      // =================================================
+      /*
+       * MediaRecorder MIME type
+       *
+       * Some Android/iOS browsers don't support
+       * audio/webm properly.
+       */
 
       let recorder;
 
+      const mimeTypes = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus",
+      ];
+
+      let selectedMimeType =
+        "";
+
+      if (
+        typeof MediaRecorder !==
+        "undefined" &&
+        MediaRecorder.isTypeSupported
+      ) {
+
+        selectedMimeType =
+          mimeTypes.find(
+            (type) =>
+              MediaRecorder.isTypeSupported(
+                type
+              )
+          ) || "";
+
+      }
 
       try {
 
         recorder =
-          new MediaRecorder(
-            stream,
-            {
-              mimeType:
-                "audio/webm",
-            }
-          );
+          selectedMimeType
+            ? new MediaRecorder(
+                stream,
+                {
+                  mimeType:
+                    selectedMimeType,
+                }
+              )
+            : new MediaRecorder(
+                stream
+              );
 
       } catch {
 
@@ -1345,13 +1354,10 @@ useEffect(() => {
 
       }
 
-
       mediaRecorderRef.current =
         recorder;
 
-
       chunksRef.current = [];
-
 
       recorder.ondataavailable =
         (event) => {
@@ -1367,39 +1373,39 @@ useEffect(() => {
 
           }
 
-          resetSilenceTimer();
-
         };
-
 
       recorder.onstart = () => {
 
-        setRecording(true);
+        recordingRef.current =
+          true;
 
+        setRecording(true);
         setIsListening(true);
+        setIsThinking(false);
+
+        detectVoice();
 
         resetSilenceTimer();
 
       };
 
-
       recorder.onstop =
         async () => {
+
+          recordingRef.current =
+            false;
 
           cancelAnimationFrame(
             animationRef.current
           );
 
-
           setVoiceLevel(0);
-
           setVoiceData([]);
-
 
           clearTimeout(
             silenceTimer.current
           );
-
 
           stream
             .getTracks()
@@ -1407,62 +1413,100 @@ useEffect(() => {
               track.stop();
             });
 
-
           if (
             audioContextRef.current
           ) {
 
-            await audioContextRef.current
-              .close()
-              .catch(() => {});
+            try {
 
+              await audioContextRef.current
+                .close();
+
+            } catch {}
 
             audioContextRef.current =
               null;
 
           }
 
-
           setRecording(false);
-
           setIsListening(false);
 
+          const recordedMimeType =
+            recorder.mimeType ||
+            selectedMimeType ||
+            "audio/webm";
 
           const blob =
             new Blob(
               chunksRef.current,
               {
                 type:
-                  recorder.mimeType ||
-                  "audio/webm",
+                  recordedMimeType,
               }
             );
 
+          /*
+           * Reset chunks immediately.
+           */
+
+          chunksRef.current = [];
 
           if (!blob.size) {
 
             setIsThinking(false);
 
+            if (
+              voiceModeRef.current
+            ) {
+
+              scheduleVoiceRestart();
+
+            }
+
             return;
 
           }
 
-
           const formData =
             new FormData();
 
+          /*
+           * Backend already accepts the uploaded
+           * audio file. Keep webm/mp4 extension
+           * consistent with actual MIME.
+           */
+
+          let extension =
+            "webm";
+
+          if (
+            recordedMimeType.includes(
+              "mp4"
+            )
+          ) {
+
+            extension = "mp4";
+
+          } else if (
+            recordedMimeType.includes(
+              "ogg"
+            )
+          ) {
+
+            extension = "ogg";
+
+          }
 
           formData.append(
             "file",
             blob,
-            "voice.webm"
+            `voice.${extension}`
           );
-
 
           try {
 
             setIsThinking(true);
-
 
             const res =
               await api.post(
@@ -1476,11 +1520,9 @@ useEffect(() => {
                 }
               );
 
-
             const convertedText =
               res.data?.text ||
               "";
-
 
             if (
               !convertedText.trim()
@@ -1488,51 +1530,55 @@ useEffect(() => {
 
               setIsThinking(false);
 
+              if (
+                voiceModeRef.current
+              ) {
 
-              if (voiceMode) {
-
-                setTimeout(() => {
-
-                  if (!recording) {
-                    startRecording();
-                  }
-
-                }, 300);
+                scheduleVoiceRestart();
 
               }
-
 
               return;
 
             }
 
-
             setText(
               convertedText
             );
 
+            /*
+             * Don't show a toast on every voice-mode
+             * interaction because it can interrupt UX.
+             */
 
-            toast.success(
-              "Voice converted!"
-            );
+            if (
+              !voiceModeRef.current
+            ) {
 
+              toast.success(
+                "Voice converted!"
+              );
 
-            if (voiceMode) {
+            }
 
-              setTimeout(() => {
+            if (
+              voiceModeRef.current
+            ) {
 
-                sendMessage(
-                  convertedText
-                );
+              /*
+               * Send immediately.
+               * No unnecessary 150ms delay.
+               */
 
-              }, 150);
+              await sendMessage(
+                convertedText
+              );
 
             } else {
 
               setIsThinking(false);
 
             }
-
 
           } catch (err) {
 
@@ -1541,43 +1587,73 @@ useEffect(() => {
               err
             );
 
-
             setIsThinking(false);
 
-
             toast.error(
-
-              err.response
-                ?.data?.detail ||
-
-              err.response
-                ?.data?.message ||
-
+              err.response?.data?.detail ||
+              err.response?.data?.message ||
               "Speech recognition failed"
-
             );
+
+            if (
+              voiceModeRef.current
+            ) {
+
+              scheduleVoiceRestart();
+
+            }
 
           }
 
         };
 
+      recorder.onerror = (event) => {
 
-      recorder.onerror = () => {
+        console.log(
+          "MediaRecorder error:",
+          event
+        );
+
+        recordingRef.current =
+          false;
 
         setRecording(false);
-
         setIsListening(false);
-
         setIsThinking(false);
+
+        clearTimeout(
+          silenceTimer.current
+        );
 
         toast.error(
           "Recording failed."
         );
 
+        if (
+          voiceModeRef.current
+        ) {
+
+          scheduleVoiceRestart();
+
+        }
+
       };
 
+      /*
+       * Timeslice gives mobile browsers periodic
+       * data chunks instead of waiting until the
+       * entire recording ends.
+       */
 
-      recorder.start();
+      try {
+
+        recorder.start(250);
+
+      } catch {
+
+        recorder.start();
+
+      }
 
     } catch (err) {
 
@@ -1586,19 +1662,60 @@ useEffect(() => {
         err
       );
 
+      recordingRef.current =
+        false;
 
       setRecording(false);
-
       setIsListening(false);
-
       setIsThinking(false);
-
 
       toast.error(
         "Please allow microphone access"
       );
 
     }
+
+  }
+
+
+  // =====================================================
+  // VOICE RESTART
+  // =====================================================
+
+  function scheduleVoiceRestart() {
+
+    if (
+      !voiceModeRef.current
+    ) {
+      return;
+    }
+
+    if (
+      restartingVoiceRef.current
+    ) {
+      return;
+    }
+
+    restartingVoiceRef.current =
+      true;
+
+    setTimeout(() => {
+
+      restartingVoiceRef.current =
+        false;
+
+      if (
+        voiceModeRef.current &&
+        !recordingRef.current &&
+        !speakingRef.current &&
+        !sendingRef.current
+      ) {
+
+        startRecording();
+
+      }
+
+    }, 500);
 
   }
 
@@ -1613,14 +1730,30 @@ useEffect(() => {
       silenceTimer.current
     );
 
+    recordingRef.current =
+      false;
 
     if (
       mediaRecorderRef.current &&
-      mediaRecorderRef.current
-        .state !== "inactive"
+      mediaRecorderRef.current.state !==
+        "inactive"
     ) {
 
-      mediaRecorderRef.current.stop();
+      try {
+
+        mediaRecorderRef.current.stop();
+
+      } catch {
+
+        setRecording(false);
+        setIsListening(false);
+
+      }
+
+    } else {
+
+      setRecording(false);
+      setIsListening(false);
 
     }
 
@@ -1633,7 +1766,9 @@ useEffect(() => {
 
   function toggleRecording() {
 
-    if (recording) {
+    if (
+      recordingRef.current
+    ) {
 
       stopRecording();
 
@@ -1655,15 +1790,14 @@ useEffect(() => {
     if (
       !chat ||
       sending
-    ) return;
-
+    ) {
+      return;
+    }
 
     try {
 
       setSending(true);
-
       setIsThinking(true);
-
 
       await api.post(
         "/chat/regenerate",
@@ -1673,11 +1807,9 @@ useEffect(() => {
         }
       );
 
-
       await loadMessages(
         chat.id
       );
-
 
       toast.success(
         "Response regenerated"
@@ -1690,23 +1822,15 @@ useEffect(() => {
         err
       );
 
-
       toast.error(
-
-        err.response?.data
-          ?.detail ||
-
-        err.response?.data
-          ?.message ||
-
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
         "Regenerate failed"
-
       );
 
     } finally {
 
       setSending(false);
-
       setIsThinking(false);
 
     }
@@ -1723,15 +1847,14 @@ useEffect(() => {
     if (
       !chat ||
       sending
-    ) return;
-
+    ) {
+      return;
+    }
 
     try {
 
       setSending(true);
-
       setIsThinking(true);
-
 
       const res =
         await api.post(
@@ -1742,17 +1865,14 @@ useEffect(() => {
           }
         );
 
-
       const answer =
         res.data?.assistant ||
         "";
-
 
       setMessages((prev) => {
 
         const updated =
           [...prev];
-
 
         for (
           let i =
@@ -1767,14 +1887,10 @@ useEffect(() => {
           ) {
 
             updated[i] = {
-
               ...updated[i],
-
               content:
                 answer,
-
             };
-
 
             break;
 
@@ -1782,11 +1898,20 @@ useEffect(() => {
 
         }
 
-
         return updated;
 
       });
 
+      if (
+        voiceModeRef.current &&
+        answer
+      ) {
+
+        await speakAnswer(
+          answer
+        );
+
+      }
 
     } catch (err) {
 
@@ -1795,20 +1920,14 @@ useEffect(() => {
         err
       );
 
-
       toast.error(
-
-        err.response?.data
-          ?.detail ||
-
+        err.response?.data?.detail ||
         "Continue failed"
-
       );
 
     } finally {
 
       setSending(false);
-
       setIsThinking(false);
 
     }
@@ -1824,15 +1943,12 @@ useEffect(() => {
 
     if (!chat) return;
 
-
     const confirmed =
       window.confirm(
         "Are you sure you want to clear this conversation?"
       );
 
-
     if (!confirmed) return;
-
 
     try {
 
@@ -1840,9 +1956,7 @@ useEffect(() => {
         `/chat/clear/${chat.id}`
       );
 
-
       setMessages([]);
-
 
       toast.success(
         "Conversation cleared"
@@ -1855,14 +1969,9 @@ useEffect(() => {
         err
       );
 
-
       toast.error(
-
-        err.response?.data
-          ?.detail ||
-
+        err.response?.data?.detail ||
         "Failed to clear conversation"
-
       );
 
     }
@@ -1884,39 +1993,27 @@ useEffect(() => {
       sending ||
       !chat
     ) {
-
       return;
-
     }
-
 
     try {
 
       setSending(true);
-
       setIsThinking(true);
 
-
       await api.put(
-
         `/chat/edit-message/${messageId}`,
-
         {
           chat_id:
             chat.id,
-
           message:
             newText.trim(),
-
         }
-
       );
-
 
       await loadMessages(
         chat.id
       );
-
 
       toast.success(
         "Message updated"
@@ -1929,23 +2026,15 @@ useEffect(() => {
         err
       );
 
-
       toast.error(
-
-        err.response?.data
-          ?.detail ||
-
-        err.response?.data
-          ?.message ||
-
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
         "Edit failed"
-
       );
 
     } finally {
 
       setSending(false);
-
       setIsThinking(false);
 
     }
@@ -1966,25 +2055,18 @@ useEffect(() => {
         ? customText
         : text;
 
-
     if (
       !message?.trim() ||
       !chat ||
-      sending
+      sendingRef.current
     ) {
 
       return;
 
     }
 
-
     const cleanMessage =
       message.trim();
-
-
-    // ===================================================
-    // IMAGE GENERATION
-    // ===================================================
 
     if (
       imageGenerationMode
@@ -1998,39 +2080,29 @@ useEffect(() => {
 
     }
 
-
     setText("");
 
     setSending(true);
+    sendingRef.current =
+      true;
 
     setIsThinking(true);
 
-
-    // Add user + assistant placeholder
-
     setMessages((prev) => [
-
       ...prev,
-
       {
         role: "user",
         content: cleanMessage,
       },
-
       {
         role: "assistant",
         content: "",
       },
-
     ]);
 
-
     requestAnimationFrame(() => {
-
       scrollToBottom(true);
-
     });
-
 
     try {
 
@@ -2049,50 +2121,43 @@ useEffect(() => {
             cleanMessage
           );
 
-
         setIsThinking(false);
-
 
         setMessages((prev) => {
 
           const updated =
             [...prev];
 
-
           updated[
             updated.length - 1
           ] = {
-
             role:
               "assistant",
-
             content:
               answer,
-
           };
-
 
           return updated;
 
         });
 
-
         clearSelectedFile();
 
-
         if (
-          voiceMode &&
+          voiceModeRef.current &&
           answer
         ) {
+
+          /*
+           * TTS happens before voice recording
+           * restarts.
+           */
 
           await speakAnswer(
             answer
           );
 
         }
-
-
-        setSending(false);
 
         return;
 
@@ -2111,57 +2176,43 @@ useEffect(() => {
 
         const res =
           await api.post(
-
             "/files/chat-pdf",
-
             {
               file_id:
                 uploadedFileId,
-
               question:
                 cleanMessage,
             }
-
           );
-
 
         const answer =
           res.data?.answer ||
           "";
 
-
         setIsThinking(false);
-
 
         setMessages((prev) => {
 
           const updated =
             [...prev];
 
-
           updated[
             updated.length - 1
           ] = {
-
             role:
               "assistant",
-
             content:
               answer,
-
           };
-
 
           return updated;
 
         });
 
-
         clearSelectedFile();
 
-
         if (
-          voiceMode &&
+          voiceModeRef.current &&
           answer
         ) {
 
@@ -2170,9 +2221,6 @@ useEffect(() => {
           );
 
         }
-
-
-        setSending(false);
 
         return;
 
@@ -2188,7 +2236,6 @@ useEffect(() => {
           "token"
         );
 
-
       if (!token) {
 
         throw new Error(
@@ -2197,73 +2244,53 @@ useEffect(() => {
 
       }
 
-
       const response =
         await fetch(
-
           "https://nova-ai-five-orpin.vercel.app/api/chat/stream",
-
           {
-
             method:
               "POST",
 
             headers: {
-
               "Content-Type":
                 "application/json",
 
               Authorization:
                 `Bearer ${token}`,
-
             },
 
             body:
               JSON.stringify({
-
                 chat_id:
                   chat.id,
-
                 message:
                   cleanMessage,
-
               }),
-
           }
-
         );
-
 
       if (!response.ok) {
 
         let errorMessage =
           "Streaming failed";
 
-
         try {
 
           const errorData =
             await response.json();
-
 
           errorMessage =
             errorData?.detail ||
             errorData?.message ||
             errorMessage;
 
-        } catch {
-
-          // ignore
-
-        }
-
+        } catch {}
 
         throw new Error(
           errorMessage
         );
 
       }
-
 
       if (!response.body) {
 
@@ -2273,17 +2300,13 @@ useEffect(() => {
 
       }
 
-
       const reader =
         response.body.getReader();
-
 
       const decoder =
         new TextDecoder();
 
-
       let aiAnswer = "";
-
 
       while (true) {
 
@@ -2293,9 +2316,7 @@ useEffect(() => {
         } =
           await reader.read();
 
-
         if (done) break;
-
 
         const chunk =
           decoder.decode(
@@ -2305,25 +2326,19 @@ useEffect(() => {
             }
           );
 
-
         if (!chunk) continue;
-
 
         setIsThinking(false);
 
-
         aiAnswer += chunk;
-
 
         setMessages((prev) => {
 
           const updated =
             [...prev];
 
-
           const lastIndex =
             updated.length - 1;
-
 
           if (
             lastIndex >= 0 &&
@@ -2335,47 +2350,87 @@ useEffect(() => {
             updated[
               lastIndex
             ] = {
-
               ...updated[
                 lastIndex
               ],
-
               content:
                 aiAnswer,
-
             };
 
           }
-
 
           return updated;
 
         });
 
-
-        requestAnimationFrame(
-          () => {
-            scrollToBottom(false);
-          }
-        );
+        requestAnimationFrame(() => {
+          scrollToBottom(false);
+        });
 
       }
 
+      /*
+       * Make sure decoder gets any remaining bytes.
+       */
+
+      const remaining =
+        decoder.decode();
+
+      if (remaining) {
+
+        aiAnswer += remaining;
+
+        setMessages((prev) => {
+
+          const updated =
+            [...prev];
+
+          const lastIndex =
+            updated.length - 1;
+
+          if (
+            lastIndex >= 0 &&
+            updated[lastIndex]
+              .role ===
+              "assistant"
+          ) {
+
+            updated[
+              lastIndex
+            ] = {
+              ...updated[
+                lastIndex
+              ],
+              content:
+                aiAnswer,
+            };
+
+          }
+
+          return updated;
+
+        });
+
+      }
 
       setIsThinking(false);
 
-
       if (
-        voiceMode &&
-        aiAnswer
+        voiceModeRef.current &&
+        aiAnswer.trim()
       ) {
+
+        /*
+         * Important:
+         * Wait for streaming to fully finish,
+         * then TTS.
+         */
 
         await speakAnswer(
           aiAnswer
         );
 
       }
-
 
     } catch (err) {
 
@@ -2384,16 +2439,13 @@ useEffect(() => {
         err
       );
 
-
       setMessages((prev) => {
 
         const updated =
           [...prev];
 
-
         const lastIndex =
           updated.length - 1;
-
 
         if (
           lastIndex >= 0 &&
@@ -2405,43 +2457,48 @@ useEffect(() => {
           updated[
             lastIndex
           ] = {
-
             ...updated[
               lastIndex
             ],
-
             content:
               "Sorry, something went wrong. Please try again.",
-
           };
 
         }
-
 
         return updated;
 
       });
 
-
       toast.error(
-
-        err.response?.data
-          ?.detail ||
-
-        err.response?.data
-          ?.message ||
-
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
         err.message ||
-
         "Message failed"
-
       );
 
     } finally {
 
       setSending(false);
+      sendingRef.current =
+        false;
 
       setIsThinking(false);
+
+      /*
+       * If TTS somehow failed but voice mode
+       * is still enabled, restart listening.
+       */
+
+      if (
+        voiceModeRef.current &&
+        !speakingRef.current &&
+        !recordingRef.current
+      ) {
+
+        scheduleVoiceRestart();
+
+      }
 
     }
 
@@ -2455,9 +2512,7 @@ useEffect(() => {
   function clearSelectedFile() {
 
     setSelectedFile(null);
-
     setUploadedFileId(null);
-
     setUploadedFileType(null);
 
   }
@@ -2471,31 +2526,41 @@ useEffect(() => {
     answer
   ) {
 
-    if (!answer) return;
+    if (
+      !answer?.trim()
+    ) {
 
+      return;
+
+    }
+
+    /*
+     * Stop old audio first.
+     */
+
+    stopSpeaking();
 
     try {
 
+      speakingRef.current =
+        true;
+
       setIsSpeaking(true);
 
+      setIsThinking(false);
 
       const res =
         await api.post(
-
           "/files/tts",
-
           {
             text:
               answer,
           },
-
           {
             responseType:
               "blob",
           }
-
         );
-
 
       if (
         !res.data ||
@@ -2508,116 +2573,207 @@ useEffect(() => {
 
       }
 
+      /*
+       * Create object URL.
+       */
 
       const audioURL =
         URL.createObjectURL(
           res.data
         );
 
+      audioUrlRef.current =
+        audioURL;
+
+      /*
+       * Use HTMLAudioElement instead of new Audio()
+       * without references.
+       *
+       * This is much more reliable on mobile.
+       */
 
       const player =
-        new Audio(
-          audioURL
+        document.createElement(
+          "audio"
         );
 
+      player.preload =
+        "auto";
+
+      player.playsInline =
+        true;
+
+      player.setAttribute(
+        "playsinline",
+        ""
+      );
+
+      player.src =
+        audioURL;
 
       audioRef.current =
         player;
 
-
       return new Promise(
         (resolve) => {
 
+          let resolved =
+            false;
+
+          const finish =
+            (restart = true) => {
+
+              if (resolved) {
+                return;
+              }
+
+              resolved = true;
+
+              speakingRef.current =
+                false;
+
+              setIsSpeaking(false);
+
+              try {
+
+                player.pause();
+
+              } catch {}
+
+              try {
+
+                player.removeAttribute(
+                  "src"
+                );
+
+                player.load();
+
+              } catch {}
+
+              if (
+                audioUrlRef.current ===
+                audioURL
+              ) {
+
+                try {
+
+                  URL.revokeObjectURL(
+                    audioURL
+                  );
+
+                } catch {}
+
+                audioUrlRef.current =
+                  null;
+
+              }
+
+              if (
+                audioRef.current ===
+                player
+              ) {
+
+                audioRef.current =
+                  null;
+
+              }
+
+              if (
+                restart &&
+                voiceModeRef.current
+              ) {
+
+                scheduleVoiceRestart();
+
+              }
+
+              resolve();
+
+            };
 
           player.onended =
             () => {
 
-              setIsSpeaking(
-                false
+              console.log(
+                "Nova TTS finished"
               );
 
+              finish(true);
 
-              URL.revokeObjectURL(
-                audioURL
+            };
+
+          player.onerror =
+            (event) => {
+
+              console.log(
+                "Nova TTS playback error:",
+                event
               );
 
+              finish(true);
 
-              audioRef.current =
-                null;
+            };
 
+          /*
+           * Wait until enough audio is loaded.
+           */
 
-              if (voiceMode) {
+          const startPlayback =
+            async () => {
 
-                setTimeout(
-                  () => {
+              try {
 
-                    if (
-                      !recording &&
-                      !isSpeaking
-                    ) {
+                /*
+                 * Normal speed.
+                 *
+                 * Some mobile browsers can produce
+                 * weird slow playback when playbackRate
+                 * isn't explicitly defined.
+                 */
 
-                      startRecording();
+                player.playbackRate =
+                  1.0;
 
-                    }
+                player.defaultPlaybackRate =
+                  1.0;
 
-                  },
-                  250
+                player.volume =
+                  1.0;
+
+                await player.play();
+
+              } catch (playError) {
+
+                console.log(
+                  "TTS play error:",
+                  playError
                 );
+
+                finish(true);
 
               }
 
-
-              resolve();
-
             };
 
+          if (
+            player.readyState >= 2
+          ) {
 
-          player.onerror =
-            () => {
+            startPlayback();
 
-              setIsSpeaking(
-                false
-              );
+          } else {
 
+            player.oncanplay =
+              () => {
 
-              URL.revokeObjectURL(
-                audioURL
-              );
+                startPlayback();
 
+              };
 
-              audioRef.current =
-                null;
-
-
-              resolve();
-
-            };
-
-
-          player.play()
-            .catch(() => {
-
-              setIsSpeaking(
-                false
-              );
-
-
-              URL.revokeObjectURL(
-                audioURL
-              );
-
-
-              audioRef.current =
-                null;
-
-
-              resolve();
-
-            });
+          }
 
         }
       );
-
 
     } catch (err) {
 
@@ -2626,7 +2782,18 @@ useEffect(() => {
         err
       );
 
+      speakingRef.current =
+        false;
+
       setIsSpeaking(false);
+
+      if (
+        voiceModeRef.current
+      ) {
+
+        scheduleVoiceRestart();
+
+      }
 
     }
 
@@ -2639,30 +2806,49 @@ useEffect(() => {
 
   function stopSpeaking() {
 
-    if (!audioRef.current) {
+    speakingRef.current =
+      false;
 
-      setIsSpeaking(false);
+    if (
+      audioRef.current
+    ) {
 
-      return;
+      try {
+
+        audioRef.current.pause();
+
+        audioRef.current.currentTime =
+          0;
+
+        audioRef.current.removeAttribute(
+          "src"
+        );
+
+        audioRef.current.load();
+
+      } catch {}
+
+      audioRef.current =
+        null;
 
     }
 
+    if (
+      audioUrlRef.current
+    ) {
 
-    try {
+      try {
 
-      audioRef.current.pause();
+        URL.revokeObjectURL(
+          audioUrlRef.current
+        );
 
-      audioRef.current.currentTime =
-        0;
+      } catch {}
 
-      audioRef.current.src = "";
+      audioUrlRef.current =
+        null;
 
-    } catch {}
-
-
-    audioRef.current =
-      null;
-
+    }
 
     setIsSpeaking(false);
 
@@ -2675,21 +2861,19 @@ useEffect(() => {
 
   function interruptAI() {
 
-    if (!isSpeaking) return;
-
+    if (
+      !speakingRef.current
+    ) {
+      return;
+    }
 
     stopSpeaking();
 
+    if (
+      voiceModeRef.current
+    ) {
 
-    if (voiceMode) {
-
-      setTimeout(() => {
-
-        if (!recording) {
-          startRecording();
-        }
-
-      }, 150);
+      scheduleVoiceRestart();
 
     }
 
@@ -2719,11 +2903,9 @@ useEffect(() => {
             </span>
 
             <div className="loading-dots">
-
               <i></i>
               <i></i>
               <i></i>
-
             </div>
 
           </div>
@@ -2779,7 +2961,6 @@ useEffect(() => {
 
     <div className="chat-container">
 
-
       {/* =================================================
           WELCOME
       ================================================= */}
@@ -2800,7 +2981,6 @@ useEffect(() => {
 
             </div>
 
-
             <div className="nova-welcome-text">
 
               <span className="nova-welcome-small">
@@ -2813,11 +2993,11 @@ useEffect(() => {
 
               <p>
                 Nova AI is ready for you
+                <br />
                 Made by Syed ALi Ahsan
               </p>
 
             </div>
-
 
             <div className="nova-welcome-loader">
 
@@ -2845,7 +3025,6 @@ useEffect(() => {
         }
       >
 
-
         {messages.length === 0 &&
           !sending && (
 
@@ -2861,7 +3040,6 @@ useEffect(() => {
 
                 </div>
 
-
                 <div className="welcome-badge">
 
                   <span className="welcome-dot"></span>
@@ -2870,11 +3048,9 @@ useEffect(() => {
 
                 </div>
 
-
                 <h2>
                   How can I help you today?
                 </h2>
-
 
                 <p>
                   Ask questions, explore
@@ -2884,9 +3060,7 @@ useEffect(() => {
                   or talk with Nova.
                 </p>
 
-
                 <div className="welcome-suggestions">
-
 
                   <button
                     type="button"
@@ -2899,7 +3073,6 @@ useEffect(() => {
                     Explain something
                   </button>
 
-
                   <button
                     type="button"
                     onClick={() =>
@@ -2910,7 +3083,6 @@ useEffect(() => {
                   >
                     Help me write
                   </button>
-
 
                   <button
                     type="button"
@@ -2923,7 +3095,6 @@ useEffect(() => {
                     Solve a problem
                   </button>
 
-
                 </div>
 
               </div>
@@ -2931,7 +3102,6 @@ useEffect(() => {
             </div>
 
           )}
-
 
         <div className="message-list">
 
@@ -2972,13 +3142,11 @@ useEffect(() => {
                 onEdit={
                   msg.role ===
                   "user"
-
                     ? (newText) =>
                         editMessage(
                           msg.id,
                           newText
                         )
-
                     : undefined
                 }
 
@@ -3030,7 +3198,6 @@ useEffect(() => {
 
           )}
 
-
         <div ref={bottomRef} />
 
       </div>
@@ -3057,7 +3224,6 @@ useEffect(() => {
 
           </div>
 
-
           <div className="upload-preview-info">
 
             <strong>
@@ -3078,7 +3244,6 @@ useEffect(() => {
             </span>
 
           </div>
-
 
           <button
             type="button"
@@ -3110,7 +3275,6 @@ useEffect(() => {
             <FiImage />
           </div>
 
-
           <div>
 
             <strong>
@@ -3123,7 +3287,6 @@ useEffect(() => {
             </span>
 
           </div>
-
 
           <button
             type="button"
@@ -3156,17 +3319,12 @@ useEffect(() => {
 
         <div className="chat-input-area">
 
-
           {/* FILE INPUT */}
 
           <input
-
             ref={fileInputRef}
-
             type="file"
-
             className="file-input"
-
             accept="
               .pdf,
               .jpg,
@@ -3178,47 +3336,35 @@ useEffect(() => {
               image/png,
               image/webp
             "
-
             onChange={(e) => {
 
               const file =
                 e.target.files?.[0];
 
-
               if (file) {
-
                 uploadFile(file);
-
               }
-
 
               e.target.value =
                 "";
 
             }}
-
           />
 
 
           {/* ATTACH */}
 
           <button
-
             type="button"
-
             className="composer-btn"
-
             onClick={() =>
               fileInputRef.current?.click()
             }
-
             title="Attach PDF or image"
-
             disabled={
               sending ||
               imageGenerationMode
             }
-
           >
 
             <FiPaperclip />
@@ -3229,9 +3375,7 @@ useEffect(() => {
           {/* IMAGE GENERATION */}
 
           <button
-
             type="button"
-
             className={`
               composer-btn
               ${
@@ -3240,7 +3384,6 @@ useEffect(() => {
                   : ""
               }
             `}
-
             onClick={() => {
 
               if (
@@ -3264,13 +3407,10 @@ useEffect(() => {
               }
 
             }}
-
             title="Generate image"
-
             disabled={
               sending
             }
-
           >
 
             <FiImage />
@@ -3281,9 +3421,7 @@ useEffect(() => {
           {/* MIC */}
 
           <button
-
             type="button"
-
             className={`
               composer-btn
               ${
@@ -3292,7 +3430,6 @@ useEffect(() => {
                   : ""
               }
             `}
-
             onClick={() => {
 
               if (isSpeaking) {
@@ -3306,26 +3443,20 @@ useEffect(() => {
               }
 
             }}
-
             title={
               recording
                 ? "Stop recording"
                 : "Voice input"
             }
-
             disabled={
               imageGenerationMode ||
               generatingImage
             }
-
           >
 
             {recording
-
               ? <FiSquare />
-
               : <FiMic />
-
             }
 
           </button>
@@ -3334,9 +3465,7 @@ useEffect(() => {
           {/* VOICE MODE */}
 
           <button
-
             type="button"
-
             className={`
               composer-btn
               ${
@@ -3345,30 +3474,34 @@ useEffect(() => {
                   : ""
               }
             `}
-
             onClick={() => {
 
               const next =
                 !voiceMode;
 
+              voiceModeRef.current =
+                next;
 
               setVoiceMode(
                 next
               );
 
-
               setShowVoiceModal(
                 true
               );
 
+              if (!next) {
+
+                stopRecording();
+                stopSpeaking();
+
+              }
+
             }}
-
             title="Voice mode"
-
             disabled={
               imageGenerationMode
             }
-
           >
 
             <FiHeadphones />
@@ -3379,51 +3512,33 @@ useEffect(() => {
           {/* TEXT INPUT */}
 
           <textarea
-
             className="chat-input"
-
             value={text}
-
             placeholder={
-
               imageGenerationMode
-
                 ? "Describe the image you want..."
-
                 : recording
-
                 ? "Listening..."
-
                 : uploadedFileId
-
                 ? uploadedFileType ===
                   "image"
-
                   ? "Ask anything about this image..."
-
                   : "Ask anything about this PDF..."
-
                 : "Message Nova AI..."
-
             }
-
             rows={1}
-
             disabled={
               recording ||
               generatingImage
             }
-
             onChange={(e) => {
 
               setText(
                 e.target.value
               );
 
-
               e.target.style.height =
                 "auto";
-
 
               e.target.style.height =
                 Math.min(
@@ -3432,7 +3547,6 @@ useEffect(() => {
                 ) + "px";
 
             }}
-
             onKeyDown={(e) => {
 
               if (
@@ -3447,66 +3561,47 @@ useEffect(() => {
               }
 
             }}
-
           />
 
 
           {/* SEND */}
 
           <button
-
             type="button"
-
             className={`
               send-btn
-
               ${
                 text.trim()
                   ? "send-ready"
                   : ""
               }
-
               ${
                 imageGenerationMode
                   ? "image-send-btn"
                   : ""
               }
             `}
-
             onClick={() =>
               sendMessage()
             }
-
             disabled={
-
               sending ||
-
               !text.trim() ||
-
               recording
-
             }
-
             title={
-
               imageGenerationMode
                 ? "Generate image"
                 : "Send message"
-
             }
-
           >
 
             {imageGenerationMode
-
               ? <FiImage />
-
               : <FiSend />
-
             }
 
           </button>
-
 
         </div>
 
@@ -3521,7 +3616,6 @@ useEffect(() => {
             Nova AI can make mistakes.
             Check important information.
           </span>
-
 
           <span className="composer-shortcut">
 
@@ -3569,10 +3663,14 @@ useEffect(() => {
         onClose={() => {
 
           stopRecording();
-
           stopSpeaking();
 
-          setVoiceMode(false);
+          voiceModeRef.current =
+            false;
+
+          setVoiceMode(
+            false
+          );
 
           setShowVoiceModal(
             false
@@ -3605,7 +3703,6 @@ useEffect(() => {
         }
 
       />
-
 
     </div>
 

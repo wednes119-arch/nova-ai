@@ -43,7 +43,21 @@ export default function ChatBox({ chat, loading }) {
 
   const [showWelcome, setShowWelcome] = useState(true);
 
-  
+  // =====================================================
+  // WELCOME SCREEN TIMER
+  // =====================================================
+
+  useEffect(() => {
+
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+
+  }, []);
 
   // =====================================================
   // WELCOME VOICE
@@ -63,6 +77,7 @@ export default function ChatBox({ chat, loading }) {
     let cancelled = false;
     let speechStarted = false;
     let fallbackTimer = null;
+    let speechTimer = null;
 
     const getBestVoice = () => {
 
@@ -90,36 +105,34 @@ export default function ChatBox({ chat, loading }) {
 
       for (const preferredName of preferredNames) {
 
-        const match =
-          voices.find((voice) =>
-            voice.name
-              ?.toLowerCase()
-              .includes(
-                preferredName.toLowerCase()
-              )
-          );
+        const match = voices.find((voice) =>
+          voice.name
+            ?.toLowerCase()
+            .includes(
+              preferredName.toLowerCase()
+            )
+        );
 
         if (match) {
           return match;
         }
+
       }
 
-      const femaleVoice =
-        voices.find((voice) =>
-          /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
-            .test(voice.name || "")
-        );
+      const femaleVoice = voices.find((voice) =>
+        /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
+          .test(voice.name || "")
+      );
 
       if (femaleVoice) {
         return femaleVoice;
       }
 
-      const englishVoice =
-        voices.find((voice) =>
-          /^en(-|_)/i.test(
-            voice.lang || ""
-          )
-        );
+      const englishVoice = voices.find((voice) =>
+        /^en(-|_)/i.test(
+          voice.lang || ""
+        )
+      );
 
       return englishVoice || voices[0];
     };
@@ -149,144 +162,153 @@ export default function ChatBox({ chat, loading }) {
           "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan."
         );
 
+      // =================================================
+      // WELCOME VOICE SPEED
+      // =================================================
+
       /*
- * MOBILE OPTIMIZED WELCOME VOICE
- * --------------------------------
- * 1.0 = natural speaking speed
- * Avoid very low rates because some mobile
- * browsers make them sound extremely slow.
- */
+       * 1.0 = normal natural speed
+       * 0.72 was too slow on mobile
+       */
 
-utterance.rate = 1.0;
-utterance.pitch = 1.05;
-utterance.volume = 1;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.05;
+      utterance.volume = 1;
 
-const selectedVoice = getBestVoice();
+      const selectedVoice =
+        getBestVoice();
 
-if (selectedVoice) {
-  utterance.voice = selectedVoice;
+      if (selectedVoice) {
 
-  console.log(
-    "Nova welcome voice:",
-    selectedVoice.name,
-    selectedVoice.lang
-  );
-}
+        utterance.voice =
+          selectedVoice;
 
-utterance.onstart = () => {
-  console.log(
-    "Nova welcome voice started"
-  );
-};
+        console.log(
+          "Nova welcome voice:",
+          selectedVoice.name,
+          selectedVoice.lang
+        );
 
-utterance.onend = () => {
-  console.log(
-    "Nova welcome voice completed"
-  );
+      }
 
-  /*
-   * IMPORTANT:
-   * Don't hide the welcome screen using
-   * a fixed timer. Hide it only when voice
-   * has actually finished.
-   */
-  if (!cancelled) {
-    setShowWelcome(false);
-  }
-};
+      utterance.onstart = () => {
 
-utterance.onerror = (event) => {
-  console.log(
-    "Nova welcome voice error:",
-    event
-  );
+        console.log(
+          "Nova welcome voice started"
+        );
 
-  /*
-   * If mobile browser fails to speak,
-   * don't leave the user stuck on
-   * the welcome screen.
-   */
-  if (!cancelled) {
-    setShowWelcome(false);
-  }
-};
+      };
 
-if (!cancelled) {
-  /*
-   * Cancel any previous speech before
-   * starting a fresh welcome message.
-   */
-  window.speechSynthesis.cancel();
+      utterance.onend = () => {
 
-  /*
-   * Small delay helps mobile browsers
-   * initialize the speech engine properly.
-   */
-  setTimeout(() => {
+        console.log(
+          "Nova welcome voice completed"
+        );
 
-    if (!cancelled) {
-      window.speechSynthesis.speak(
-        utterance
-      );
-    }
+      };
 
-  }, 100);
-}
+      utterance.onerror = (event) => {
 
-const handleVoicesChanged = () => {
+        console.log(
+          "Nova welcome voice error:",
+          event
+        );
 
-  if (cancelled) return;
+      };
 
-  /*
-   * Wait briefly for mobile browsers
-   * to finish loading available voices.
-   */
-  setTimeout(() => {
+      if (!cancelled) {
 
-    if (!cancelled) {
-      speakWelcome();
-    }
+        /*
+         * Small delay improves compatibility
+         * with mobile browsers.
+         */
 
-  }, 200);
+        speechTimer = setTimeout(() => {
 
-};
+          if (
+            !cancelled &&
+            !window.speechSynthesis.speaking
+          ) {
 
-window.speechSynthesis.addEventListener(
-  "voiceschanged",
-  handleVoicesChanged
-);
+            window.speechSynthesis.speak(
+              utterance
+            );
 
-fallbackTimer = setTimeout(() => {
+          }
 
-  if (!cancelled) {
-    speakWelcome();
-  }
+        }, 100);
 
-}, 600);
+      }
 
-return () => {
+    };
 
-  cancelled = true;
-  speechStarted = false;
+    const handleVoicesChanged = () => {
 
-  if (fallbackTimer) {
-    clearTimeout(
-      fallbackTimer
+      if (cancelled) {
+        return;
+      }
+
+      setTimeout(() => {
+
+        if (!cancelled) {
+          speakWelcome();
+        }
+
+      }, 150);
+
+    };
+
+    window.speechSynthesis.addEventListener(
+      "voiceschanged",
+      handleVoicesChanged
     );
-  }
 
-  window.speechSynthesis.removeEventListener(
-    "voiceschanged",
-    handleVoicesChanged
-  );
+    /*
+     * Some browsers already have voices loaded.
+     */
 
-  /*
-   * Stop speech only when this effect
-   * is genuinely being cleaned up.
-   */
-  window.speechSynthesis.cancel();
+    speakWelcome();
 
-};
+    /*
+     * Fallback for browsers where voices
+     * are loaded slightly later.
+     */
+
+    fallbackTimer = setTimeout(() => {
+
+      if (!cancelled) {
+        speakWelcome();
+      }
+
+    }, 600);
+
+    return () => {
+
+      cancelled = true;
+      speechStarted = false;
+
+      if (fallbackTimer) {
+        clearTimeout(
+          fallbackTimer
+        );
+      }
+
+      if (speechTimer) {
+        clearTimeout(
+          speechTimer
+        );
+      }
+
+      window.speechSynthesis.removeEventListener(
+        "voiceschanged",
+        handleVoicesChanged
+      );
+
+      window.speechSynthesis.cancel();
+
+    };
+
+  }, [showWelcome]);
 
 
   // =====================================================
@@ -458,23 +480,34 @@ return () => {
   // =====================================================
 
   useEffect(() => {
+
     recordingRef.current =
       recording;
+
   }, [recording]);
 
+
   useEffect(() => {
+
     speakingRef.current =
       isSpeaking;
+
   }, [isSpeaking]);
 
-  useEffect(() => {
-    voiceModeRef.current =
-      voiceMode;
-  }, [voiceMode]);
 
   useEffect(() => {
+
+    voiceModeRef.current =
+      voiceMode;
+
+  }, [voiceMode]);
+
+
+  useEffect(() => {
+
     sendingRef.current =
       sending;
+
   }, [sending]);
 
 
@@ -489,12 +522,15 @@ return () => {
     const container =
       messagesContainerRef.current;
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     try {
 
       container.scrollTo({
-        top: container.scrollHeight,
+        top:
+          container.scrollHeight,
         behavior:
           smooth
             ? "smooth"
@@ -513,7 +549,9 @@ return () => {
 
   useEffect(() => {
 
-    if (!messages.length) return;
+    if (!messages.length) {
+      return;
+    }
 
     requestAnimationFrame(() => {
       scrollToBottom(false);
@@ -557,13 +595,6 @@ return () => {
     if (!voiceMode) {
       return;
     }
-
-    /*
-     * Don't immediately start recording if:
-     * - AI is speaking
-     * - AI is thinking
-     * - already recording
-     */
 
     if (
       !recordingRef.current &&
@@ -688,9 +719,7 @@ return () => {
   // LOAD HISTORY
   // =====================================================
 
-  async function loadMessages(
-    chatId
-  ) {
+  async function loadMessages(chatId) {
 
     try {
 
@@ -730,7 +759,9 @@ return () => {
 
   async function uploadFile(file) {
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const allowedTypes = [
       "application/pdf",
@@ -938,10 +969,12 @@ return () => {
         await api.post(
           "/files/generate-image",
           {
-            prompt: cleanPrompt,
+            prompt:
+              cleanPrompt,
           },
           {
-            responseType: "blob",
+            responseType:
+              "blob",
           }
         );
 
@@ -993,9 +1026,7 @@ return () => {
         try {
 
           const errorText =
-            await err.response
-              .data
-              .text();
+            await err.response.data.text();
 
           const parsed =
             JSON.parse(
@@ -1012,10 +1043,8 @@ return () => {
       } else {
 
         message =
-          err.response?.data
-            ?.detail ||
-          err.response?.data
-            ?.message ||
+          err.response?.data?.detail ||
+          err.response?.data?.message ||
           err.message ||
           message;
 
@@ -1053,12 +1082,6 @@ return () => {
       silenceTimer.current
     );
 
-    /*
-     * 6 seconds is okay for normal recording.
-     * In voice mode we keep it slightly shorter
-     * after silence so the conversation feels responsive.
-     */
-
     const timeout =
       voiceModeRef.current
         ? 4500
@@ -1088,7 +1111,9 @@ return () => {
 
     try {
 
-      if (recordingRef.current) {
+      if (
+        recordingRef.current
+      ) {
 
         stopRecording();
 
@@ -1133,9 +1158,7 @@ return () => {
     }
 
     if (speakingRef.current) {
-
       stopSpeaking();
-
     }
 
     if (
@@ -1153,10 +1176,6 @@ return () => {
 
     try {
 
-      /*
-       * Make sure previous recorder is dead.
-       */
-
       if (
         mediaRecorderRef.current &&
         mediaRecorderRef.current.state !==
@@ -1170,14 +1189,16 @@ return () => {
       }
 
       const stream =
-        await navigator.mediaDevices
-          .getUserMedia({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-            },
-          });
+        await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation:
+              true,
+            noiseSuppression:
+              true,
+            autoGainControl:
+              true,
+          },
+        });
 
       const AudioContextClass =
         window.AudioContext ||
@@ -1199,10 +1220,6 @@ return () => {
 
       }
 
-      /*
-       * Mobile Safari/Chrome can suspend AudioContext.
-       */
-
       audioContextRef.current =
         new AudioContextClass();
 
@@ -1213,8 +1230,7 @@ return () => {
 
         try {
 
-          await audioContextRef.current
-            .resume();
+          await audioContextRef.current.resume();
 
         } catch {}
 
@@ -1295,12 +1311,10 @@ return () => {
 
       }
 
-      /*
-       * MediaRecorder MIME type
-       *
-       * Some Android/iOS browsers don't support
-       * audio/webm properly.
-       */
+
+      // =================================================
+      // MEDIA RECORDER
+      // =================================================
 
       let recorder;
 
@@ -1316,7 +1330,7 @@ return () => {
 
       if (
         typeof MediaRecorder !==
-        "undefined" &&
+          "undefined" &&
         MediaRecorder.isTypeSupported
       ) {
 
@@ -1375,6 +1389,7 @@ return () => {
 
         };
 
+
       recorder.onstart = () => {
 
         recordingRef.current =
@@ -1389,6 +1404,7 @@ return () => {
         resetSilenceTimer();
 
       };
+
 
       recorder.onstop =
         async () => {
@@ -1419,8 +1435,7 @@ return () => {
 
             try {
 
-              await audioContextRef.current
-                .close();
+              await audioContextRef.current.close();
 
             } catch {}
 
@@ -1446,10 +1461,6 @@ return () => {
               }
             );
 
-          /*
-           * Reset chunks immediately.
-           */
-
           chunksRef.current = [];
 
           if (!blob.size) {
@@ -1470,12 +1481,6 @@ return () => {
 
           const formData =
             new FormData();
-
-          /*
-           * Backend already accepts the uploaded
-           * audio file. Keep webm/mp4 extension
-           * consistent with actual MIME.
-           */
 
           let extension =
             "webm";
@@ -1546,11 +1551,6 @@ return () => {
               convertedText
             );
 
-            /*
-             * Don't show a toast on every voice-mode
-             * interaction because it can interrupt UX.
-             */
-
             if (
               !voiceModeRef.current
             ) {
@@ -1564,11 +1564,6 @@ return () => {
             if (
               voiceModeRef.current
             ) {
-
-              /*
-               * Send immediately.
-               * No unnecessary 150ms delay.
-               */
 
               await sendMessage(
                 convertedText
@@ -1607,6 +1602,7 @@ return () => {
 
         };
 
+
       recorder.onerror = (event) => {
 
         console.log(
@@ -1639,11 +1635,6 @@ return () => {
 
       };
 
-      /*
-       * Timeslice gives mobile browsers periodic
-       * data chunks instead of waiting until the
-       * entire recording ends.
-       */
 
       try {
 
@@ -1941,14 +1932,18 @@ return () => {
 
   async function clearConversation() {
 
-    if (!chat) return;
+    if (!chat) {
+      return;
+    }
 
     const confirmed =
       window.confirm(
         "Are you sure you want to clear this conversation?"
       );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
 
@@ -2060,9 +2055,7 @@ return () => {
       !chat ||
       sendingRef.current
     ) {
-
       return;
-
     }
 
     const cleanMessage =
@@ -2083,6 +2076,7 @@ return () => {
     setText("");
 
     setSending(true);
+
     sendingRef.current =
       true;
 
@@ -2092,7 +2086,8 @@ return () => {
       ...prev,
       {
         role: "user",
-        content: cleanMessage,
+        content:
+          cleanMessage,
       },
       {
         role: "assistant",
@@ -2147,11 +2142,6 @@ return () => {
           voiceModeRef.current &&
           answer
         ) {
-
-          /*
-           * TTS happens before voice recording
-           * restarts.
-           */
 
           await speakAnswer(
             answer
@@ -2316,7 +2306,9 @@ return () => {
         } =
           await reader.read();
 
-        if (done) break;
+        if (done) {
+          break;
+        }
 
         const chunk =
           decoder.decode(
@@ -2326,7 +2318,9 @@ return () => {
             }
           );
 
-        if (!chunk) continue;
+        if (!chunk) {
+          continue;
+        }
 
         setIsThinking(false);
 
@@ -2369,16 +2363,17 @@ return () => {
 
       }
 
-      /*
-       * Make sure decoder gets any remaining bytes.
-       */
+      // =================================================
+      // REMAINING STREAM DATA
+      // =================================================
 
       const remaining =
         decoder.decode();
 
       if (remaining) {
 
-        aiAnswer += remaining;
+        aiAnswer +=
+          remaining;
 
         setMessages((prev) => {
 
@@ -2415,16 +2410,14 @@ return () => {
 
       setIsThinking(false);
 
+      // =================================================
+      // VOICE MODE TTS
+      // =================================================
+
       if (
         voiceModeRef.current &&
         aiAnswer.trim()
       ) {
-
-        /*
-         * Important:
-         * Wait for streaming to fully finish,
-         * then TTS.
-         */
 
         await speakAnswer(
           aiAnswer
@@ -2480,15 +2473,11 @@ return () => {
     } finally {
 
       setSending(false);
+
       sendingRef.current =
         false;
 
       setIsThinking(false);
-
-      /*
-       * If TTS somehow failed but voice mode
-       * is still enabled, restart listening.
-       */
 
       if (
         voiceModeRef.current &&
@@ -2529,14 +2518,8 @@ return () => {
     if (
       !answer?.trim()
     ) {
-
       return;
-
     }
-
-    /*
-     * Stop old audio first.
-     */
 
     stopSpeaking();
 
@@ -2546,7 +2529,6 @@ return () => {
         true;
 
       setIsSpeaking(true);
-
       setIsThinking(false);
 
       const res =
@@ -2573,10 +2555,6 @@ return () => {
 
       }
 
-      /*
-       * Create object URL.
-       */
-
       const audioURL =
         URL.createObjectURL(
           res.data
@@ -2584,13 +2562,6 @@ return () => {
 
       audioUrlRef.current =
         audioURL;
-
-      /*
-       * Use HTMLAudioElement instead of new Audio()
-       * without references.
-       *
-       * This is much more reliable on mobile.
-       */
 
       const player =
         document.createElement(
@@ -2635,9 +2606,7 @@ return () => {
               setIsSpeaking(false);
 
               try {
-
                 player.pause();
-
               } catch {}
 
               try {
@@ -2691,6 +2660,7 @@ return () => {
 
             };
 
+
           player.onended =
             () => {
 
@@ -2701,6 +2671,7 @@ return () => {
               finish(true);
 
             };
+
 
           player.onerror =
             (event) => {
@@ -2714,22 +2685,11 @@ return () => {
 
             };
 
-          /*
-           * Wait until enough audio is loaded.
-           */
 
           const startPlayback =
             async () => {
 
               try {
-
-                /*
-                 * Normal speed.
-                 *
-                 * Some mobile browsers can produce
-                 * weird slow playback when playbackRate
-                 * isn't explicitly defined.
-                 */
 
                 player.playbackRate =
                   1.0;
@@ -2754,6 +2714,7 @@ return () => {
               }
 
             };
+
 
           if (
             player.readyState >= 2
@@ -2962,7 +2923,7 @@ return () => {
     <div className="chat-container">
 
       {/* =================================================
-          WELCOME
+          WELCOME SCREEN
       ================================================= */}
 
       {showWelcome && (
@@ -2973,7 +2934,9 @@ return () => {
 
             <div className="nova-welcome-logo">
 
-              <span>N</span>
+              <span>
+                N
+              </span>
 
               <div className="nova-welcome-ring"></div>
 
@@ -3034,7 +2997,9 @@ return () => {
 
                 <div className="welcome-logo">
 
-                  <span>N</span>
+                  <span>
+                    N
+                  </span>
 
                   <div className="logo-ring"></div>
 
@@ -3103,13 +3068,13 @@ return () => {
 
           )}
 
+
         <div className="message-list">
 
           {messages.map(
             (msg, index) => (
 
               <Message
-
                 key={
                   msg.id ||
                   `${msg.role}-${index}`
@@ -3158,7 +3123,9 @@ return () => {
         </div>
 
 
-        {/* THINKING */}
+        {/* =================================================
+            THINKING
+        ================================================= */}
 
         {isThinking && (
 
@@ -3655,7 +3622,6 @@ return () => {
       ================================================= */}
 
       <VoiceModal
-
         open={
           showVoiceModal
         }
@@ -3701,7 +3667,6 @@ return () => {
         voiceData={
           voiceData
         }
-
       />
 
     </div>

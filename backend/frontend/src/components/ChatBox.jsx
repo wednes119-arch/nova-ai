@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
-  FiPlus,
-  FiPaperclip,
-  FiMic,
-  FiSend,
+  FiCopy,
+  FiThumbsUp,
+  FiThumbsDown,
+  FiRefreshCw,
+  FiVolume2,
+  FiEdit2,
   FiX,
-  FiImage,
-  FiFileText,
-  FiHeadphones,
+  FiCheck,
+  FiSquare,
 } from "react-icons/fi";
 
 import api from "../api/api";

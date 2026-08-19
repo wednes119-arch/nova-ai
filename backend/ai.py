@@ -1,10 +1,15 @@
 import os
+import base64
 
 from dotenv import load_dotenv
+
 from groq import Groq
 from google import genai
+
 from PIL import Image
+
 from gtts import gTTS
+
 from huggingface_hub import InferenceClient
 
 
@@ -20,20 +25,35 @@ load_dotenv()
 # =====================================================
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 
+# =====================================================
+# VALIDATE API KEYS
+# =====================================================
+
 if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY is missing")
+
+    raise RuntimeError(
+        "GROQ_API_KEY is missing"
+    )
 
 
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is missing")
+
+    raise RuntimeError(
+        "GEMINI_API_KEY is missing"
+    )
 
 
 if not HF_TOKEN:
-    raise RuntimeError("HF_TOKEN is missing")
+
+    raise RuntimeError(
+        "HF_TOKEN is missing"
+    )
 
 
 # =====================================================
@@ -55,8 +75,7 @@ gemini_client = genai.Client(
 # =====================================================
 
 hf_client = InferenceClient(
-    provider="auto",
-    api_key=HF_TOKEN,
+    token=HF_TOKEN
 )
 
 
@@ -68,8 +87,9 @@ GROQ_MODEL = "openai/gpt-oss-20b"
 
 GEMINI_VISION_MODEL = "gemini-2.5-flash"
 
-# Hugging Face image generation
-HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
+HF_IMAGE_MODEL = (
+    "black-forest-labs/FLUX.1-schnell"
+)
 
 
 # =====================================================
@@ -78,14 +98,30 @@ HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
 
 def ask_ai(messages):
 
-    response = groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=messages,
-        temperature=0.7,
-        max_tokens=1024,
+    response = (
+        groq_client
+        .chat
+        .completions
+        .create(
+
+            model=GROQ_MODEL,
+
+            messages=messages,
+
+            temperature=0.7,
+
+            max_tokens=1024,
+
+        )
     )
 
-    return response.choices[0].message.content
+
+    return (
+        response
+        .choices[0]
+        .message
+        .content
+    )
 
 
 # =====================================================
@@ -94,107 +130,240 @@ def ask_ai(messages):
 
 def generate_title(message: str):
 
-    response = groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "Generate a short chat title in 3 to 5 words. "
-                    "Return only the title. Do not use quotes."
-                ),
-            },
-            {
-                "role": "user",
-                "content": message,
-            },
-        ],
-        temperature=0.2,
-        max_tokens=20,
+    response = (
+        groq_client
+        .chat
+        .completions
+        .create(
+
+            model=GROQ_MODEL,
+
+            messages=[
+
+                {
+                    "role": "system",
+
+                    "content": (
+                        "Generate a short chat title. "
+                        "Maximum 6 words. "
+                        "Return only the title."
+                    ),
+                },
+
+                {
+                    "role": "user",
+
+                    "content": message,
+                },
+
+            ],
+
+            temperature=0.5,
+
+            max_tokens=30,
+
+        )
     )
 
-    return response.choices[0].message.content.strip()
+
+    return (
+        response
+        .choices[0]
+        .message
+        .content
+        .strip()
+    )
 
 
 # =====================================================
-# CHAT WITH PDF
+# PDF CHAT
 # =====================================================
 
-def ask_pdf(pdf_text: str, question: str):
+def ask_pdf(
+    pdf_text: str,
+    question: str,
+):
 
-    # Prevent extremely large context
-    pdf_text = pdf_text[:12000]
+    if not pdf_text or not pdf_text.strip():
 
-    response = groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": """
-You are Nova AI.
+        raise ValueError(
+            "PDF text is empty."
+        )
 
-Answer ONLY from the uploaded PDF.
 
-If the information exists anywhere in the document,
-find it carefully before replying.
+    if not question or not question.strip():
 
-Do not guess.
+        raise ValueError(
+            "Question is required."
+        )
 
-If the answer is not present, reply exactly:
 
-I couldn't find that information in the document.
-""",
-            },
-            {
-                "role": "user",
-                "content": f"""
-PDF CONTENT:
+    # Prevent extremely large prompts
+    # from becoming unnecessarily expensive.
 
-{pdf_text}
+    max_pdf_chars = 50000
 
-QUESTION:
+    if len(pdf_text) > max_pdf_chars:
 
-{question}
+        pdf_text = pdf_text[
+            :max_pdf_chars
+        ]
 
-Answer only from the PDF.
-""",
-            },
-        ],
-        temperature=0,
-        max_tokens=700,
-    )
 
-    return response.choices[0].message.content.strip()
+    messages = [
+
+        {
+            "role": "system",
+
+            "content": (
+                "You are Nova AI, an intelligent "
+                "PDF assistant. "
+                "Answer the user's question using "
+                "the provided PDF content. "
+                "If the answer is not present in "
+                "the PDF, clearly say that it is "
+                "not available in the document. "
+                "Do not invent information."
+            ),
+        },
+
+        {
+            "role": "user",
+
+            "content": (
+                "PDF CONTENT:\n\n"
+                f"{pdf_text}\n\n"
+                "USER QUESTION:\n\n"
+                f"{question}"
+            ),
+        },
+
+    ]
+
+
+    return ask_ai(messages)
 
 
 # =====================================================
 # IMAGE UNDERSTANDING
 # =====================================================
 
-def ask_image(image_path: str, question: str):
+def understand_image(
+    image: Image.Image,
+    prompt: str,
+):
 
     try:
 
-        image = Image.open(image_path)
+        response = (
+            gemini_client
+            .models
+            .generate_content(
 
-        response = gemini_client.models.generate_content(
-            model=GEMINI_VISION_MODEL,
-            contents=[
-                image,
-                question,
-            ],
+                model=GEMINI_VISION_MODEL,
+
+                contents=[
+                    prompt,
+                    image,
+                ],
+
+            )
         )
+
 
         return (
             response.text
             or "I couldn't understand this image."
         )
 
+
     except Exception as e:
 
         print("=" * 80)
-        print("IMAGE UNDERSTANDING ERROR:")
-        print(str(e))
+
+        print(
+            "IMAGE UNDERSTANDING ERROR:"
+        )
+
+        print(
+            type(e).__name__
+        )
+
+        print(
+            str(e)
+        )
+
+        print("=" * 80)
+
+        raise
+
+
+# =====================================================
+# IMAGE FILE UNDERSTANDING
+# =====================================================
+
+def ask_image(
+    image_path: str,
+    question: str,
+):
+
+    if not image_path:
+
+        raise ValueError(
+            "Image path is required."
+        )
+
+
+    if not os.path.exists(image_path):
+
+        raise FileNotFoundError(
+            f"Image not found: {image_path}"
+        )
+
+
+    if not question or not question.strip():
+
+        question = (
+            "Describe this image in detail."
+        )
+
+
+    try:
+
+        image = Image.open(
+            image_path
+        )
+
+
+        # Make sure the image is loaded
+        image.load()
+
+
+        answer = understand_image(
+            image,
+            question.strip(),
+        )
+
+
+        return answer
+
+
+    except Exception as e:
+
+        print("=" * 80)
+
+        print(
+            "IMAGE FILE PROCESSING ERROR:"
+        )
+
+        print(
+            type(e).__name__
+        )
+
+        print(
+            str(e)
+        )
+
         print("=" * 80)
 
         raise
@@ -205,35 +374,90 @@ def ask_image(image_path: str, question: str):
 # HUGGING FACE
 # =====================================================
 
-def generate_image(prompt: str):
+def generate_image(
+    prompt: str
+):
+
+    if not prompt or not prompt.strip():
+
+        raise ValueError(
+            "Image prompt cannot be empty."
+        )
+
+
+    prompt = prompt.strip()
+
 
     try:
 
         print("=" * 80)
-        print("NOVA AI - HUGGING FACE IMAGE GENERATION")
-        print("MODEL:", HF_IMAGE_MODEL)
-        print("PROMPT:", prompt)
-        print("=" * 80)
 
-        image = hf_client.text_to_image(
-            prompt=prompt,
-            model=HF_IMAGE_MODEL,
+        print(
+            "NOVA AI - HUGGING FACE IMAGE GENERATION"
         )
 
+        print(
+            "MODEL:",
+            HF_IMAGE_MODEL,
+        )
+
+        print(
+            "PROMPT:",
+            prompt,
+        )
+
+        print("=" * 80)
+
+
+        # =============================================
+        # HUGGING FACE IMAGE GENERATION
+        # =============================================
+
+        image = (
+            hf_client
+            .text_to_image(
+
+                prompt=prompt,
+
+                model=HF_IMAGE_MODEL,
+
+            )
+        )
+
+
         if image is None:
-            raise Exception(
-                "Hugging Face did not return an image."
+
+            raise RuntimeError(
+                "Hugging Face returned no image."
             )
 
-        print("Hugging Face image generated successfully.")
+
+        print(
+            "Hugging Face image generated successfully."
+        )
+
 
         return image
+
 
     except Exception as e:
 
         print("=" * 80)
-        print("HUGGING FACE IMAGE GENERATION ERROR:")
-        print(str(e))
+
+        print(
+            "HUGGING FACE IMAGE GENERATION ERROR:"
+        )
+
+        print(
+            "TYPE:",
+            type(e).__name__,
+        )
+
+        print(
+            "ERROR:",
+            str(e),
+        )
+
         print("=" * 80)
 
         raise
@@ -245,12 +469,23 @@ def generate_image(prompt: str):
 
 def ask_ai_stream(messages):
 
-    return groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=messages,
-        temperature=0.7,
-        max_tokens=1024,
-        stream=True,
+    return (
+        groq_client
+        .chat
+        .completions
+        .create(
+
+            model=GROQ_MODEL,
+
+            messages=messages,
+
+            temperature=0.7,
+
+            max_tokens=1024,
+
+            stream=True,
+
+        )
     )
 
 
@@ -258,22 +493,43 @@ def ask_ai_stream(messages):
 # TEXT TO SPEECH
 # =====================================================
 
-def text_to_speech(text: str):
+def text_to_speech(
+    text: str
+):
+
+    if not text or not text.strip():
+
+        raise ValueError(
+            "Text is required for TTS."
+        )
+
 
     os.makedirs(
         "uploads",
         exist_ok=True,
     )
 
-    filename = "uploads/output.mp3"
 
-    tts = gTTS(
-        text=text,
-        lang="en",
-        slow=False,
+    filename = (
+        "uploads/output.mp3"
     )
 
-    tts.save(filename)
+
+    tts = gTTS(
+
+        text=text.strip(),
+
+        lang="en",
+
+        slow=False,
+
+    )
+
+
+    tts.save(
+        filename
+    )
+
 
     return filename
 
@@ -282,20 +538,51 @@ def text_to_speech(text: str):
 # SPEECH TO TEXT
 # =====================================================
 
-def speech_to_text(audio_path: str):
+def speech_to_text(
+    audio_path: str
+):
 
-    with open(audio_path, "rb") as audio_file:
+    if not audio_path:
+
+        raise ValueError(
+            "Audio path is required."
+        )
+
+
+    if not os.path.exists(audio_path):
+
+        raise FileNotFoundError(
+            f"Audio file not found: {audio_path}"
+        )
+
+
+    with open(
+        audio_path,
+        "rb",
+    ) as audio_file:
 
         transcription = (
+
             groq_client
+
             .audio
+
             .transcriptions
+
             .create(
+
                 file=audio_file,
-                model="whisper-large-v3-turbo",
+
+                model=(
+                    "whisper-large-v3-turbo"
+                ),
+
                 response_format="text",
+
             )
+
         )
+
 
     return transcription
 
@@ -307,9 +594,20 @@ def speech_to_text(audio_path: str):
 def ai_status():
 
     return {
-        "groq": "connected",
-        "gemini": "connected",
-        "vision": GEMINI_VISION_MODEL,
-        "image_generation": "Hugging Face",
-        "image_model": HF_IMAGE_MODEL,
+
+        "groq": bool(
+            GROQ_API_KEY
+        ),
+
+        "gemini": bool(
+            GEMINI_API_KEY
+        ),
+
+        "huggingface": bool(
+            HF_TOKEN
+        ),
+
+        "image_model":
+            HF_IMAGE_MODEL,
+
     }

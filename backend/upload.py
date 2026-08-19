@@ -1,3 +1,4 @@
+
 from fastapi import (
     APIRouter,
     UploadFile,
@@ -6,7 +7,7 @@ from fastapi import (
     HTTPException,
 )
 
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 
 from sqlalchemy.orm import Session
 
@@ -14,7 +15,9 @@ import os
 import uuid
 import shutil
 import tempfile
+from io import BytesIO
 
+from dotenv import load_dotenv
 from supabase import create_client, Client
 
 from database import get_db
@@ -37,6 +40,13 @@ from ai import (
     text_to_speech,
     generate_image,
 )
+
+
+# =====================================================
+# ENVIRONMENT
+# =====================================================
+
+load_dotenv()
 
 
 # =====================================================
@@ -96,8 +106,11 @@ ALLOWED_TYPES = {
     "application/pdf": "pdf",
 
     "image/jpeg": "image",
+
     "image/png": "image",
+
     "image/webp": "image",
+
 }
 
 
@@ -137,13 +150,20 @@ async def upload_file(
         )
 
 
+    # =================================================
+    # READ FILE
+    # =================================================
+
     try:
 
         file_content = await file.read()
 
     except Exception as e:
 
-        print("FILE READ ERROR:", str(e))
+        print("=" * 80)
+        print("FILE READ ERROR:")
+        print(str(e))
+        print("=" * 80)
 
         raise HTTPException(
             status_code=500,
@@ -167,6 +187,10 @@ async def upload_file(
         )
 
 
+    # =================================================
+    # FILE EXTENSION
+    # =================================================
+
     extension = os.path.splitext(
         file.filename
     )[1].lower()
@@ -175,17 +199,25 @@ async def upload_file(
     if not extension:
 
         if file.content_type == "application/pdf":
+
             extension = ".pdf"
 
         elif file.content_type == "image/jpeg":
+
             extension = ".jpg"
 
         elif file.content_type == "image/png":
+
             extension = ".png"
 
         elif file.content_type == "image/webp":
+
             extension = ".webp"
 
+
+    # =================================================
+    # UNIQUE FILE NAME
+    # =================================================
 
     unique_filename = (
         f"{uuid.uuid4().hex}"
@@ -225,12 +257,14 @@ async def upload_file(
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to upload file to storage.",
+            detail=(
+                f"Failed to upload file to storage: {str(e)}"
+            ),
         )
 
 
     # =================================================
-    # DATABASE
+    # SAVE FILE INFORMATION
     # =================================================
 
     try:
@@ -260,6 +294,9 @@ async def upload_file(
         print(str(e))
         print("=" * 80)
 
+
+        # Roll back Supabase upload if DB fails
+
         try:
 
             supabase.storage \
@@ -268,14 +305,23 @@ async def upload_file(
                     storage_path
                 ])
 
-        except Exception:
-            pass
+        except Exception as cleanup_error:
+
+            print(
+                "SUPABASE CLEANUP ERROR:",
+                str(cleanup_error),
+            )
+
 
         raise HTTPException(
             status_code=500,
             detail="Failed to save file information.",
         )
 
+
+    # =================================================
+    # RESPONSE
+    # =================================================
 
     return {
 
@@ -289,10 +335,10 @@ async def upload_file(
 
         "storage_path": storage_path,
 
-        "file_category":
-            ALLOWED_TYPES[
-                file.content_type
-            ],
+        "file_category": ALLOWED_TYPES[
+            file.content_type
+        ],
+
     }
 
 
@@ -352,6 +398,10 @@ def chat_with_pdf(
 
     try:
 
+        # =============================================
+        # DOWNLOAD PDF
+        # =============================================
+
         pdf_bytes = (
 
             supabase.storage
@@ -365,6 +415,10 @@ def chat_with_pdf(
         )
 
 
+        # =============================================
+        # TEMPORARY PDF
+        # =============================================
+
         temp_file = tempfile.NamedTemporaryFile(
             delete=False,
             suffix=".pdf",
@@ -376,6 +430,10 @@ def chat_with_pdf(
 
         temp_file.close()
 
+
+        # =============================================
+        # EXTRACT TEXT
+        # =============================================
 
         pdf_text = extract_pdf_text(
             temp_path
@@ -398,6 +456,10 @@ def chat_with_pdf(
                 ),
             )
 
+
+        # =============================================
+        # ASK AI
+        # =============================================
 
         answer = ask_pdf(
             pdf_text,
@@ -430,7 +492,9 @@ def chat_with_pdf(
 
         raise HTTPException(
             status_code=500,
-            detail=f"PDF processing failed: {str(e)}",
+            detail=(
+                f"PDF processing failed: {str(e)}"
+            ),
         )
 
 
@@ -442,8 +506,11 @@ def chat_with_pdf(
         ):
 
             try:
+
                 os.remove(temp_path)
+
             except Exception:
+
                 pass
 
 
@@ -505,6 +572,10 @@ def ask_uploaded_image(
 
     try:
 
+        # =============================================
+        # DOWNLOAD IMAGE
+        # =============================================
+
         image_bytes = (
 
             supabase.storage
@@ -518,10 +589,18 @@ def ask_uploaded_image(
         )
 
 
+        # =============================================
+        # FILE EXTENSION
+        # =============================================
+
         extension = os.path.splitext(
             uploaded.filename
         )[1] or ".jpg"
 
+
+        # =============================================
+        # TEMP IMAGE
+        # =============================================
 
         temp_file = tempfile.NamedTemporaryFile(
             delete=False,
@@ -534,6 +613,10 @@ def ask_uploaded_image(
 
         temp_file.close()
 
+
+        # =============================================
+        # ASK AI
+        # =============================================
 
         answer = ask_image(
             temp_path,
@@ -552,6 +635,11 @@ def ask_uploaded_image(
         }
 
 
+    except HTTPException:
+
+        raise
+
+
     except Exception as e:
 
         print("=" * 80)
@@ -561,7 +649,9 @@ def ask_uploaded_image(
 
         raise HTTPException(
             status_code=500,
-            detail=f"Image processing failed: {str(e)}",
+            detail=(
+                f"Image processing failed: {str(e)}"
+            ),
         )
 
 
@@ -573,8 +663,11 @@ def ask_uploaded_image(
         ):
 
             try:
+
                 os.remove(temp_path)
+
             except Exception:
+
                 pass
 
 
@@ -598,7 +691,7 @@ def generate_ai_image(
     # VALIDATE PROMPT
     # =================================================
 
-    if not data.prompt or not data.prompt.strip():
+    if not data.prompt:
 
         raise HTTPException(
             status_code=400,
@@ -609,20 +702,30 @@ def generate_ai_image(
     prompt = data.prompt.strip()
 
 
-    temp_path = None
+    if not prompt:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Image prompt is required.",
+        )
+
+
+    # =================================================
+    # LOG REQUEST
+    # =================================================
+
+    print("=" * 80)
+    print("NOVA AI IMAGE GENERATION")
+    print("PROVIDER: HUGGING FACE")
+    print("USER:", current_user.id)
+    print("PROMPT:", prompt)
+    print("=" * 80)
 
 
     try:
 
-        print("=" * 80)
-        print("NOVA AI IMAGE GENERATION")
-        print("PROVIDER: HUGGING FACE")
-        print("PROMPT:", prompt)
-        print("=" * 80)
-
-
         # =============================================
-        # HUGGING FACE GENERATION
+        # GENERATE IMAGE
         # =============================================
 
         image = generate_image(
@@ -632,38 +735,33 @@ def generate_ai_image(
 
         if image is None:
 
-            raise Exception(
+            raise RuntimeError(
                 "Hugging Face returned no image."
             )
 
 
         # =============================================
-        # TEMPORARY PNG
+        # CONVERT IMAGE TO PNG IN MEMORY
+        #
+        # IMPORTANT:
+        # Do not use a temporary file here.
+        # This is more reliable on Vercel.
         # =============================================
 
-        temp_file = tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".png",
-        )
+        image_buffer = BytesIO()
 
-        temp_path = temp_file.name
-
-        temp_file.close()
-
-
-        # =============================================
-        # SAVE IMAGE
-        # =============================================
 
         image.save(
-            temp_path,
+            image_buffer,
             format="PNG",
         )
 
 
+        image_buffer.seek(0)
+
+
         print(
-            "Generated image:",
-            temp_path,
+            "Hugging Face image generated successfully."
         )
 
 
@@ -671,13 +769,16 @@ def generate_ai_image(
         # RETURN IMAGE
         # =============================================
 
-        return FileResponse(
+        return StreamingResponse(
 
-            path=temp_path,
+            image_buffer,
 
             media_type="image/png",
 
-            filename="nova-generated.png",
+            headers={
+                "Content-Disposition":
+                    'inline; filename="nova-generated.png"'
+            },
 
         )
 
@@ -686,14 +787,20 @@ def generate_ai_image(
 
         print("=" * 80)
         print("HUGGING FACE IMAGE GENERATION ERROR:")
+        print(type(e).__name__)
         print(str(e))
         print("=" * 80)
 
+
         raise HTTPException(
+
             status_code=500,
+
             detail=(
-                f"Image generation failed: {str(e)}"
+                "Image generation failed: "
+                f"{str(e)}"
             ),
+
         )
 
 
@@ -716,14 +823,21 @@ def speech_upload(
 
 
     suffix = (
+
         os.path.splitext(
             file.filename or ""
         )[1]
+
         or ".webm"
+
     )
 
 
     try:
+
+        # =============================================
+        # SAVE AUDIO TEMPORARILY
+        # =============================================
 
         with tempfile.NamedTemporaryFile(
             delete=False,
@@ -743,6 +857,10 @@ def speech_upload(
             temp_path,
         )
 
+
+        # =============================================
+        # TRANSCRIBE
+        # =============================================
 
         text = speech_to_text(
             temp_path
@@ -774,8 +892,13 @@ def speech_upload(
         print("=" * 80)
 
         raise HTTPException(
+
             status_code=500,
-            detail=f"Speech recognition failed: {str(e)}",
+
+            detail=(
+                f"Speech recognition failed: {str(e)}"
+            ),
+
         )
 
 
@@ -787,8 +910,11 @@ def speech_upload(
         ):
 
             try:
+
                 os.remove(temp_path)
+
             except Exception:
+
                 pass
 
 
@@ -803,6 +929,9 @@ def tts(
 
 ):
 
+    audio_path = None
+
+
     try:
 
         if not data.text or not data.text.strip():
@@ -812,6 +941,10 @@ def tts(
                 detail="Text is required.",
             )
 
+
+        # =============================================
+        # GENERATE AUDIO
+        # =============================================
 
         audio_path = text_to_speech(
             data.text
@@ -842,8 +975,13 @@ def tts(
         print("=" * 80)
 
         raise HTTPException(
+
             status_code=500,
-            detail="Text to speech failed.",
+
+            detail=(
+                f"Text to speech failed: {str(e)}"
+            ),
+
         )
 
 
@@ -881,7 +1019,7 @@ def supported_types():
 
 
 # =====================================================
-# HEALTH CHECK
+# FILE SERVICE HEALTH CHECK
 # =====================================================
 
 @router.get("/status")
@@ -896,8 +1034,12 @@ def file_status():
         "bucket": BUCKET_NAME,
 
         "image_generation": {
+
             "provider": "huggingface",
-            "model": "black-forest-labs/FLUX.1-schnell",
+
+            "model":
+                "black-forest-labs/FLUX.1-schnell",
+
         },
 
         "services": {

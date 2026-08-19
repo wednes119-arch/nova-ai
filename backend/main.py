@@ -17,27 +17,23 @@ app = FastAPI(
 
 
 # =========================================================
-# CORS CONFIGURATION
+# CORS
 # =========================================================
 
 app.add_middleware(
     CORSMiddleware,
-
     allow_origins=[
-        # Local React development
         "http://localhost:5173",
         "http://127.0.0.1:5173",
 
-        # Capacitor Android APK
+        # Capacitor
         "https://localhost",
+        "capacitor://localhost",
+        "ionic://localhost",
 
-        # Production Frontend
+        # Production frontend
         "https://nova-ai-knuv.vercel.app",
-
-        # Production Backend
-        "https://nova-ai-five-orpin.vercel.app",
     ],
-
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,22 +41,22 @@ app.add_middleware(
 
 
 # =========================================================
-# API ROUTERS
+# ROUTERS
 # =========================================================
 
 app.include_router(
     auth_router,
-    prefix="/api"
+    prefix="/api",
 )
 
 app.include_router(
     chat_router,
-    prefix="/api"
+    prefix="/api",
 )
 
 app.include_router(
     upload_router,
-    prefix="/api"
+    prefix="/api",
 )
 
 
@@ -79,5 +75,5 @@ Base.metadata.create_all(bind=engine)
 def home():
     return {
         "status": "success",
-        "message": "Nova AI API is Running 🚀"
+        "message": "Nova AI API is Running 🚀",
     }

@@ -204,7 +204,7 @@ def ask_uploaded_image(
             "message": str(e)
         }
 
-    # =====================================================
+   # =====================================================
 # Speech To Text
 # =====================================================
 
@@ -213,30 +213,54 @@ def speech_upload(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
+    import tempfile
 
-    print("=" * 60)
-    print("Speech File:", file.filename)
-    print("Content Type:", file.content_type)
+    suffix = os.path.splitext(file.filename or "")[1] or ".webm"
 
-    os.makedirs("uploads", exist_ok=True)
+    temp_path = None
 
-    filepath = os.path.join("uploads", file.filename)
+    try:
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=suffix
+        ) as temp_file:
 
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+            shutil.copyfileobj(
+                file.file,
+                temp_file
+            )
 
-    print("Saved At:", filepath)
+            temp_path = temp_file.name
 
-    text = speech_to_text(filepath)
+        print("Speech temp file:", temp_path)
 
-    print("Recognized Text:", text)
-    print("=" * 60)
+        text = speech_to_text(temp_path)
 
-    return {
-        "status": "success",
-        "filename": file.filename,
-        "text": text
-    }
+        print("Recognized Text:", text)
+
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "text": text
+        }
+
+    except Exception as e:
+
+        print("Speech Error:", str(e))
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+    finally:
+
+        if temp_path and os.path.exists(temp_path):
+
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
 
 
 # =====================================================

@@ -38,74 +38,106 @@ export default function ChatBox({ chat, loading }) {
   const [sending, setSending] = useState(false);
 
   // =====================================================
-  // WELCOME
-  // =====================================================
+// WELCOME
+// =====================================================
 
-  const [showWelcome, setShowWelcome] = useState(true);
+const [showWelcome, setShowWelcome] = useState(true);
 
-  // =====================================================
-  // WELCOME SCREEN TIMER
-  // =====================================================
 
-  useEffect(() => {
+// =====================================================
+// WELCOME VOICE LOCK
+// =====================================================
 
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 5000);
+// IMPORTANT:
+// Ye ref voice ko sirf ONE TIME play hone dega.
+// React StrictMode / voiceschanged / fallback timer
+// ki wajah se double voice nahi chalegi.
+const welcomeSpeechStartedRef = useRef(false);
 
-    return () => {
-      clearTimeout(timer);
-    };
 
-  }, []);
+// =====================================================
+// WELCOME SCREEN TIMER
+// =====================================================
 
-  // =====================================================
-  // WELCOME VOICE
-  // =====================================================
+useEffect(() => {
 
-  useEffect(() => {
+  const timer = setTimeout(() => {
+    setShowWelcome(false);
+  }, 5000);
 
-    if (!showWelcome) return;
+  return () => {
+    clearTimeout(timer);
+  };
 
-    if (
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window)
-    ) {
-      return;
+}, []);
+
+
+// =====================================================
+// WELCOME VOICE
+// =====================================================
+
+useEffect(() => {
+
+  if (!showWelcome) {
+    return;
+  }
+
+  if (
+    typeof window === "undefined" ||
+    !("speechSynthesis" in window)
+  ) {
+    return;
+  }
+
+  const speech =
+    window.speechSynthesis;
+
+  let cancelled = false;
+  let fallbackTimer = null;
+  let voicesTimer = null;
+  let speakTimer = null;
+
+
+  // ===================================================
+  // GET BEST VOICE
+  // ===================================================
+
+  const getBestVoice = () => {
+
+    const voices =
+      speech.getVoices();
+
+    if (!voices.length) {
+      return null;
     }
 
-    let cancelled = false;
-    let speechStarted = false;
-    let fallbackTimer = null;
-    let speechTimer = null;
+    const preferredNames = [
+      "Samantha",
+      "Karen",
+      "Victoria",
+      "Ava",
+      "Jenny",
+      "Aria",
+      "Zira",
+      "Susan",
+      "Google US English",
+      "Microsoft Jenny",
+      "Microsoft Aria",
+      "Microsoft Zira",
+    ];
 
-    const getBestVoice = () => {
 
-      const voices =
-        window.speechSynthesis.getVoices();
+    // -------------------------------------------------
+    // Preferred voices
+    // -------------------------------------------------
 
-      if (!voices.length) {
-        return null;
-      }
+    for (
+      const preferredName
+      of preferredNames
+    ) {
 
-      const preferredNames = [
-        "Samantha",
-        "Karen",
-        "Victoria",
-        "Ava",
-        "Jenny",
-        "Aria",
-        "Zira",
-        "Susan",
-        "Google US English",
-        "Microsoft Jenny",
-        "Microsoft Aria",
-        "Microsoft Zira",
-      ];
-
-      for (const preferredName of preferredNames) {
-
-        const match = voices.find((voice) =>
+      const match =
+        voices.find((voice) =>
           voice.name
             ?.toLowerCase()
             .includes(
@@ -113,202 +145,385 @@ export default function ChatBox({ chat, loading }) {
             )
         );
 
-        if (match) {
-          return match;
-        }
-
+      if (match) {
+        return match;
       }
 
-      const femaleVoice = voices.find((voice) =>
+    }
+
+
+    // -------------------------------------------------
+    // Female voice fallback
+    // -------------------------------------------------
+
+    const femaleVoice =
+      voices.find((voice) =>
         /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
-          .test(voice.name || "")
+          .test(
+            voice.name || ""
+          )
       );
 
-      if (femaleVoice) {
-        return femaleVoice;
-      }
+    if (femaleVoice) {
+      return femaleVoice;
+    }
 
-      const englishVoice = voices.find((voice) =>
+
+    // -------------------------------------------------
+    // English voice fallback
+    // -------------------------------------------------
+
+    const englishVoice =
+      voices.find((voice) =>
         /^en(-|_)/i.test(
           voice.lang || ""
         )
       );
 
-      return englishVoice || voices[0];
+    return (
+      englishVoice ||
+      voices[0]
+    );
+
+  };
+
+
+  // ===================================================
+  // SPEAK WELCOME
+  // ===================================================
+
+  const speakWelcome = () => {
+
+    // -------------------------------------------------
+    // CRITICAL DUPLICATE PROTECTION
+    // -------------------------------------------------
+
+    if (
+      cancelled ||
+      welcomeSpeechStartedRef.current
+    ) {
+      return;
+    }
+
+
+    // -------------------------------------------------
+    // Check available voices
+    // -------------------------------------------------
+
+    const voices =
+      speech.getVoices();
+
+    if (!voices.length) {
+      return;
+    }
+
+
+    // -------------------------------------------------
+    // LOCK IMMEDIATELY
+    //
+    // VERY IMPORTANT:
+    // Lock BEFORE speech.speak()
+    //
+    // This prevents:
+    // - voiceschanged duplicate
+    // - fallback timer duplicate
+    // - React StrictMode duplicate
+    // -------------------------------------------------
+
+    welcomeSpeechStartedRef.current =
+      true;
+
+
+    // -------------------------------------------------
+    // Stop any old queued speech
+    // -------------------------------------------------
+
+    try {
+      speech.cancel();
+    } catch {}
+
+
+    // =================================================
+    // CREATE UTTERANCE
+    // =================================================
+
+    const utterance =
+      new SpeechSynthesisUtterance(
+        "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan."
+      );
+
+
+    // =================================================
+    // VOICE SETTINGS
+    // =================================================
+
+    /*
+     * 1.0 = natural normal speed.
+     *
+     * 0.72 was too slow on mobile.
+     * 1.0 should sound natural.
+     */
+
+    utterance.rate =
+      1.0;
+
+    utterance.pitch =
+      1.05;
+
+    utterance.volume =
+      1.0;
+
+
+    // =================================================
+    // SELECT VOICE
+    // =================================================
+
+    const selectedVoice =
+      getBestVoice();
+
+    if (selectedVoice) {
+
+      utterance.voice =
+        selectedVoice;
+
+      console.log(
+        "Nova welcome voice:",
+        selectedVoice.name,
+        selectedVoice.lang
+      );
+
+    }
+
+
+    // =================================================
+    // EVENTS
+    // =================================================
+
+    utterance.onstart = () => {
+
+      console.log(
+        "Nova welcome voice started"
+      );
+
     };
 
-    const speakWelcome = () => {
 
-      if (
-        cancelled ||
-        speechStarted
-      ) {
-        return;
-      }
+    utterance.onend = () => {
 
-      const voices =
-        window.speechSynthesis.getVoices();
-
-      if (!voices.length) {
-        return;
-      }
-
-      speechStarted = true;
-
-      window.speechSynthesis.cancel();
-
-      const utterance =
-        new SpeechSynthesisUtterance(
-          "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan."
-        );
-
-      // =================================================
-      // WELCOME VOICE SPEED
-      // =================================================
+      console.log(
+        "Nova welcome voice completed"
+      );
 
       /*
-       * 1.0 = normal natural speed
-       * 0.72 was too slow on mobile
+       * Voice complete hone ke baad welcome
+       * screen ko close kar do.
+       *
+       * Timer bhi safety fallback hai.
        */
 
-      utterance.rate = 1.0;
-      utterance.pitch = 1.05;
-      utterance.volume = 1;
-
-      const selectedVoice =
-        getBestVoice();
-
-      if (selectedVoice) {
-
-        utterance.voice =
-          selectedVoice;
-
-        console.log(
-          "Nova welcome voice:",
-          selectedVoice.name,
-          selectedVoice.lang
-        );
-
-      }
-
-      utterance.onstart = () => {
-
-        console.log(
-          "Nova welcome voice started"
-        );
-
-      };
-
-      utterance.onend = () => {
-
-        console.log(
-          "Nova welcome voice completed"
-        );
-
-      };
-
-      utterance.onerror = (event) => {
-
-        console.log(
-          "Nova welcome voice error:",
-          event
-        );
-
-      };
-
       if (!cancelled) {
-
-        /*
-         * Small delay improves compatibility
-         * with mobile browsers.
-         */
-
-        speechTimer = setTimeout(() => {
-
-          if (
-            !cancelled &&
-            !window.speechSynthesis.speaking
-          ) {
-
-            window.speechSynthesis.speak(
-              utterance
-            );
-
-          }
-
-        }, 100);
-
+        setShowWelcome(false);
       }
 
     };
 
-    const handleVoicesChanged = () => {
 
-      if (cancelled) {
-        return;
+    utterance.onerror = (event) => {
+
+      console.log(
+        "Nova welcome voice error:",
+        event
+      );
+
+      /*
+       * Agar browser speech fail kare,
+       * user welcome screen par stuck nahi hoga.
+       */
+
+      if (!cancelled) {
+        setShowWelcome(false);
       }
 
+    };
+
+
+    // =================================================
+    // START SPEECH
+    // =================================================
+
+    speakTimer =
       setTimeout(() => {
 
-        if (!cancelled) {
+        if (cancelled) {
+          return;
+        }
+
+        try {
+
+          speech.speak(
+            utterance
+          );
+
+        } catch (error) {
+
+          console.log(
+            "Nova welcome speech start error:",
+            error
+          );
+
+          if (!cancelled) {
+            setShowWelcome(false);
+          }
+
+        }
+
+      }, 100);
+
+  };
+
+
+  // ===================================================
+  // VOICES CHANGED
+  // ===================================================
+
+  const handleVoicesChanged = () => {
+
+    if (
+      cancelled ||
+      welcomeSpeechStartedRef.current
+    ) {
+      return;
+    }
+
+
+    /*
+     * Some mobile browsers fire voiceschanged
+     * multiple times.
+     *
+     * Clear previous timer first.
+     */
+
+    if (voicesTimer) {
+      clearTimeout(
+        voicesTimer
+      );
+    }
+
+
+    voicesTimer =
+      setTimeout(() => {
+
+        if (
+          !cancelled &&
+          !welcomeSpeechStartedRef.current
+        ) {
+
           speakWelcome();
+
         }
 
       }, 150);
 
-    };
+  };
 
-    window.speechSynthesis.addEventListener(
+
+  // ===================================================
+  // LISTENER
+  // ===================================================
+
+  speech.addEventListener(
+    "voiceschanged",
+    handleVoicesChanged
+  );
+
+
+  // ===================================================
+  // TRY IMMEDIATELY
+  // ===================================================
+
+  speakWelcome();
+
+
+  // ===================================================
+  // FALLBACK
+  // ===================================================
+
+  /*
+   * Agar voices initially available nahi hain,
+   * to ye fallback dobara try karega.
+   *
+   * Lekin welcomeSpeechStartedRef ki wajah se
+   * duplicate voice nahi chalegi.
+   */
+
+  fallbackTimer =
+    setTimeout(() => {
+
+      if (
+        !cancelled &&
+        !welcomeSpeechStartedRef.current
+      ) {
+
+        speakWelcome();
+
+      }
+
+    }, 800);
+
+
+  // ===================================================
+  // CLEANUP
+  // ===================================================
+
+  return () => {
+
+    cancelled = true;
+
+
+    // Clear timers
+    if (fallbackTimer) {
+
+      clearTimeout(
+        fallbackTimer
+      );
+
+    }
+
+    if (voicesTimer) {
+
+      clearTimeout(
+        voicesTimer
+      );
+
+    }
+
+    if (speakTimer) {
+
+      clearTimeout(
+        speakTimer
+      );
+
+    }
+
+
+    // Remove voice listener
+    speech.removeEventListener(
       "voiceschanged",
       handleVoicesChanged
     );
 
-    /*
-     * Some browsers already have voices loaded.
-     */
-
-    speakWelcome();
 
     /*
-     * Fallback for browsers where voices
-     * are loaded slightly later.
+     * Stop currently playing welcome speech.
      */
 
-    fallbackTimer = setTimeout(() => {
+    try {
+      speech.cancel();
+    } catch {}
 
-      if (!cancelled) {
-        speakWelcome();
-      }
+  };
 
-    }, 600);
-
-    return () => {
-
-      cancelled = true;
-      speechStarted = false;
-
-      if (fallbackTimer) {
-        clearTimeout(
-          fallbackTimer
-        );
-      }
-
-      if (speechTimer) {
-        clearTimeout(
-          speechTimer
-        );
-      }
-
-      window.speechSynthesis.removeEventListener(
-        "voiceschanged",
-        handleVoicesChanged
-      );
-
-      window.speechSynthesis.cancel();
-
-    };
-
-  }, [showWelcome]);
+}, [showWelcome]);
 
 
   // =====================================================

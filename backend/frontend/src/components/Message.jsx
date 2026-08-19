@@ -14,6 +14,7 @@ import {
   FiEdit2,
   FiX,
   FiCheck,
+  FiDownload,
 } from "react-icons/fi";
 
 import CodeBlock from "./CodeBlock";
@@ -23,20 +24,31 @@ import "../styles/message.css";
 export default function Message({
   role,
   content,
+  imageUrl,
+  isGeneratedImage,
   onRegenerate,
   onEdit,
 }) {
   const isUser = role === "user";
 
   const [editing, setEditing] = useState(false);
-  const [editText, setEditText] = useState(content || "");
-  const [saving, setSaving] = useState(false);
+  const [editText, setEditText] =
+    useState(content || "");
 
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
+  const [saving, setSaving] =
+    useState(false);
 
-  const [speaking, setSpeaking] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
+  const [liked, setLiked] =
+    useState(false);
+
+  const [disliked, setDisliked] =
+    useState(false);
+
+  const [speaking, setSpeaking] =
+    useState(false);
+
+  const [regenerating, setRegenerating] =
+    useState(false);
 
   useEffect(() => {
     if (!editing) {
@@ -55,11 +67,56 @@ export default function Message({
     }
 
     try {
-      await navigator.clipboard.writeText(content);
-      toast.success("Response copied!");
+      await navigator.clipboard.writeText(
+        content
+      );
+
+      toast.success(
+        "Response copied!"
+      );
     } catch (err) {
-      console.error("Copy Error:", err);
+      console.error(
+        "Copy Error:",
+        err
+      );
+
       toast.error("Copy failed");
+    }
+  }
+
+  // =====================================================
+  // DOWNLOAD GENERATED IMAGE
+  // =====================================================
+
+  function downloadImage() {
+    if (!imageUrl) return;
+
+    try {
+      const link =
+        document.createElement("a");
+
+      link.href = imageUrl;
+      link.download =
+        "nova-generated-image.png";
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+      toast.success(
+        "Image download started"
+      );
+    } catch (err) {
+      console.error(
+        "Image download error:",
+        err
+      );
+
+      toast.error(
+        "Could not download image"
+      );
     }
   }
 
@@ -73,9 +130,7 @@ export default function Message({
       return;
     }
 
-    if (speaking) {
-      return;
-    }
+    if (speaking) return;
 
     let audioURL = null;
     let player = null;
@@ -93,13 +148,19 @@ export default function Message({
         }
       );
 
-      audioURL = URL.createObjectURL(res.data);
+      audioURL =
+        URL.createObjectURL(
+          res.data
+        );
 
-      player = new Audio(audioURL);
+      player =
+        new Audio(audioURL);
 
       player.onended = () => {
         if (audioURL) {
-          URL.revokeObjectURL(audioURL);
+          URL.revokeObjectURL(
+            audioURL
+          );
         }
 
         setSpeaking(false);
@@ -107,20 +168,29 @@ export default function Message({
 
       player.onerror = () => {
         if (audioURL) {
-          URL.revokeObjectURL(audioURL);
+          URL.revokeObjectURL(
+            audioURL
+          );
         }
 
         setSpeaking(false);
 
-        toast.error("Audio playback failed");
+        toast.error(
+          "Audio playback failed"
+        );
       };
 
       await player.play();
     } catch (err) {
-      console.error("TTS Error:", err);
+      console.error(
+        "TTS Error:",
+        err
+      );
 
       if (audioURL) {
-        URL.revokeObjectURL(audioURL);
+        URL.revokeObjectURL(
+          audioURL
+        );
       }
 
       setSpeaking(false);
@@ -141,7 +211,9 @@ export default function Message({
       const newValue = !prev;
 
       if (newValue) {
-        toast.success("Thanks for the feedback");
+        toast.success(
+          "Thanks for the feedback"
+        );
       }
 
       return newValue;
@@ -159,7 +231,9 @@ export default function Message({
       const newValue = !prev;
 
       if (newValue) {
-        toast.success("Feedback received");
+        toast.success(
+          "Feedback received"
+        );
       }
 
       return newValue;
@@ -169,7 +243,7 @@ export default function Message({
   }
 
   // =====================================================
-  // START EDIT
+  // EDIT
   // =====================================================
 
   function startEditing() {
@@ -177,24 +251,19 @@ export default function Message({
     setEditing(true);
   }
 
-  // =====================================================
-  // CANCEL EDIT
-  // =====================================================
-
   function cancelEditing() {
     setEditText(content || "");
     setEditing(false);
   }
 
-  // =====================================================
-  // SAVE EDIT
-  // =====================================================
-
   async function saveEdit() {
-    const trimmedText = editText.trim();
+    const trimmedText =
+      editText.trim();
 
     if (!trimmedText) {
-      toast.error("Message cannot be empty");
+      toast.error(
+        "Message cannot be empty"
+      );
       return;
     }
 
@@ -207,27 +276,33 @@ export default function Message({
     }
 
     if (!onEdit) {
-      toast.error("Edit is not available");
+      toast.error(
+        "Edit is not available"
+      );
       return;
     }
 
     try {
       setSaving(true);
 
-      await onEdit(trimmedText);
+      await onEdit(
+        trimmedText
+      );
 
       setEditing(false);
     } catch (err) {
-      console.error("Edit Error:", err);
-      toast.error("Edit failed");
+      console.error(
+        "Edit Error:",
+        err
+      );
+
+      toast.error(
+        "Edit failed"
+      );
     } finally {
       setSaving(false);
     }
   }
-
-  // =====================================================
-  // EDIT KEYBOARD
-  // =====================================================
 
   function handleEditKeyDown(e) {
     if (
@@ -270,7 +345,9 @@ export default function Message({
         err
       );
 
-      toast.error("Regenerate failed");
+      toast.error(
+        "Regenerate failed"
+      );
     } finally {
       setRegenerating(false);
     }
@@ -286,27 +363,29 @@ export default function Message({
 
         {!editing ? (
           <>
-            {/* USER BUBBLE */}
-
             <div className="nova-user-message-bubble">
 
               <div className="nova-user-message-content">
+
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
+                  remarkPlugins={[
+                    remarkGfm,
+                  ]}
                 >
                   {content || ""}
                 </ReactMarkdown>
+
               </div>
 
             </div>
-
-            {/* EDIT BUTTON */}
 
             {onEdit && (
               <button
                 type="button"
                 className="nova-user-edit-btn"
-                onClick={startEditing}
+                onClick={
+                  startEditing
+                }
                 title="Edit message"
               >
                 <FiEdit2 />
@@ -316,9 +395,9 @@ export default function Message({
                 </span>
               </button>
             )}
+
           </>
         ) : (
-          /* EDIT MODE */
 
           <div className="nova-edit-message-box">
 
@@ -326,9 +405,13 @@ export default function Message({
               autoFocus
               value={editText}
               onChange={(e) =>
-                setEditText(e.target.value)
+                setEditText(
+                  e.target.value
+                )
               }
-              onKeyDown={handleEditKeyDown}
+              onKeyDown={
+                handleEditKeyDown
+              }
               disabled={saving}
               placeholder="Edit your message..."
             />
@@ -338,7 +421,9 @@ export default function Message({
               <button
                 type="button"
                 className="nova-edit-cancel-btn"
-                onClick={cancelEditing}
+                onClick={
+                  cancelEditing
+                }
                 disabled={saving}
               >
                 <FiX />
@@ -351,7 +436,9 @@ export default function Message({
               <button
                 type="button"
                 className="nova-edit-save-btn"
-                onClick={saveEdit}
+                onClick={
+                  saveEdit
+                }
                 disabled={
                   saving ||
                   !editText.trim()
@@ -384,7 +471,7 @@ export default function Message({
 
       <div className="nova-ai-message">
 
-        {/* AI HEADER */}
+        {/* HEADER */}
 
         <div className="nova-ai-message-header">
 
@@ -398,156 +485,211 @@ export default function Message({
 
         </div>
 
-        {/* AI CONTENT */}
+        {/* GENERATED IMAGE */}
 
-        <div className="nova-ai-message-content">
+        {imageUrl && (
+          <div className="nova-generated-image-container">
 
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              code({
-                inline,
-                className,
-                children,
-                ...props
-              }) {
-                const match =
-                  /language-(\w+)/.exec(
-                    className || ""
-                  );
-
-                if (
-                  !inline &&
-                  match
-                ) {
-                  return (
-                    <CodeBlock
-                      language={match[1]}
-                      code={String(
-                        children
-                      ).replace(
-                        /\n$/,
-                        ""
-                      )}
-                    />
-                  );
-                }
-
-                return (
-                  <code
-                    className={className}
-                    {...props}
-                  >
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {content || ""}
-          </ReactMarkdown>
-
-        </div>
-
-        {/* AI ACTIONS */}
-
-        <div className="nova-message-actions">
-
-          {/* COPY */}
-
-          <button
-            type="button"
-            className="nova-message-action-btn"
-            onClick={copyMessage}
-            title="Copy response"
-          >
-            <FiCopy />
-
-            <span>
-              Copy
-            </span>
-          </button>
-
-          {/* LIKE */}
-
-          <button
-            type="button"
-            className={`nova-message-action-icon ${
-              liked
-                ? "active-like"
-                : ""
-            }`}
-            onClick={handleLike}
-            title="Good response"
-          >
-            <FiThumbsUp />
-          </button>
-
-          {/* DISLIKE */}
-
-          <button
-            type="button"
-            className={`nova-message-action-icon ${
-              disliked
-                ? "active-dislike"
-                : ""
-            }`}
-            onClick={handleDislike}
-            title="Bad response"
-          >
-            <FiThumbsDown />
-          </button>
-
-          {/* TTS */}
-
-          <button
-            type="button"
-            className={`nova-message-action-icon ${
-              speaking
-                ? "speaking-active"
-                : ""
-            }`}
-            onClick={playTTS}
-            disabled={speaking}
-            title={
-              speaking
-                ? "Playing..."
-                : "Listen"
-            }
-          >
-            <FiVolume2 />
-          </button>
-
-          {/* REGENERATE */}
-
-          <button
-            type="button"
-            className={`nova-message-action-icon ${
-              regenerating
-                ? "regenerating-active"
-                : ""
-            }`}
-            onClick={handleRegenerate}
-            disabled={
-              regenerating ||
-              !onRegenerate
-            }
-            title={
-              regenerating
-                ? "Regenerating..."
-                : "Regenerate"
-            }
-          >
-            <FiRefreshCw
-              className={
-                regenerating
-                  ? "icon-spinning"
-                  : ""
-              }
+            <img
+              src={imageUrl}
+              alt="Generated by Nova AI"
+              className="nova-generated-image"
             />
-          </button>
 
-        </div>
+            <div className="nova-generated-image-actions">
+
+              <button
+                type="button"
+                onClick={
+                  downloadImage
+                }
+                className="nova-generated-image-download"
+                title="Download image"
+              >
+                <FiDownload />
+
+                <span>
+                  Download
+                </span>
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* TEXT */}
+
+        {content && (
+          <div className="nova-ai-message-content">
+
+            <ReactMarkdown
+              remarkPlugins={[
+                remarkGfm,
+              ]}
+              components={{
+                code({
+                  inline,
+                  className,
+                  children,
+                  ...props
+                }) {
+                  const match =
+                    /language-(\w+)/.exec(
+                      className || ""
+                    );
+
+                  if (
+                    !inline &&
+                    match
+                  ) {
+                    return (
+                      <CodeBlock
+                        language={
+                          match[1]
+                        }
+                        code={String(
+                          children
+                        ).replace(
+                          /\n$/,
+                          ""
+                        )}
+                      />
+                    );
+                  }
+
+                  return (
+                    <code
+                      className={
+                        className
+                      }
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+
+          </div>
+        )}
+
+        {/* ACTIONS */}
+
+        {!imageUrl && (
+          <div className="nova-message-actions">
+
+            {/* COPY */}
+
+            <button
+              type="button"
+              className="nova-message-action-btn"
+              onClick={
+                copyMessage
+              }
+              title="Copy response"
+            >
+              <FiCopy />
+
+              <span>
+                Copy
+              </span>
+            </button>
+
+            {/* LIKE */}
+
+            <button
+              type="button"
+              className={`nova-message-action-icon ${
+                liked
+                  ? "active-like"
+                  : ""
+              }`}
+              onClick={
+                handleLike
+              }
+              title="Good response"
+            >
+              <FiThumbsUp />
+            </button>
+
+            {/* DISLIKE */}
+
+            <button
+              type="button"
+              className={`nova-message-action-icon ${
+                disliked
+                  ? "active-dislike"
+                  : ""
+              }`}
+              onClick={
+                handleDislike
+              }
+              title="Bad response"
+            >
+              <FiThumbsDown />
+            </button>
+
+            {/* TTS */}
+
+            <button
+              type="button"
+              className={`nova-message-action-icon ${
+                speaking
+                  ? "speaking-active"
+                  : ""
+              }`}
+              onClick={
+                playTTS
+              }
+              disabled={
+                speaking
+              }
+              title={
+                speaking
+                  ? "Playing..."
+                  : "Listen"
+              }
+            >
+              <FiVolume2 />
+            </button>
+
+            {/* REGENERATE */}
+
+            <button
+              type="button"
+              className={`nova-message-action-icon ${
+                regenerating
+                  ? "regenerating-active"
+                  : ""
+              }`}
+              onClick={
+                handleRegenerate
+              }
+              disabled={
+                regenerating ||
+                !onRegenerate
+              }
+              title={
+                regenerating
+                  ? "Regenerating..."
+                  : "Regenerate"
+              }
+            >
+              <FiRefreshCw
+                className={
+                  regenerating
+                    ? "icon-spinning"
+                    : ""
+                }
+              />
+            </button>
+
+          </div>
+        )}
 
       </div>
 

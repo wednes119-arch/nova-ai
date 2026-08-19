@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
+  FiPlus,
   FiPaperclip,
   FiMic,
-  FiSquare,
-  FiHeadphones,
   FiSend,
   FiX,
+  FiImage,
+  FiFileText,
+  FiHeadphones,
 } from "react-icons/fi";
 
 import api from "../api/api";
+
 import toast from "react-hot-toast";
 
 import Message from "./Message";
+
 import TypingIndicator from "./TypingIndicator";
+
 import VoiceModal from "./VoiceModal";
 
 import "../styles/chat.css";
@@ -28,7 +33,7 @@ export default function ChatBox({ chat, loading }) {
   const [sending, setSending] = useState(false);
 
   // =====================================================
-  // WELCOME ANIMATION
+  // WELCOME
   // =====================================================
 
   const [showWelcome, setShowWelcome] = useState(true);
@@ -41,17 +46,37 @@ export default function ChatBox({ chat, loading }) {
     return () => clearTimeout(timer);
   }, []);
 
+  // =====================================================
+  // HISTORY
+  // =====================================================
 
   const [chatHistoryEnabled, setChatHistoryEnabled] =
-  useState(() => {
-    const saved = localStorage.getItem(
-      "nova_chat_history_enabled"
+    useState(() => {
+      const saved = localStorage.getItem(
+        "nova_chat_history_enabled"
+      );
+
+      return saved === null ? true : saved === "true";
+    });
+
+  useEffect(() => {
+    const handleHistoryChange = (event) => {
+      const enabled = event.detail?.enabled ?? true;
+      setChatHistoryEnabled(enabled);
+    };
+
+    window.addEventListener(
+      "nova-chat-history-changed",
+      handleHistoryChange
     );
 
-    return saved === null
-      ? true
-      : saved === "true";
-  });
+    return () => {
+      window.removeEventListener(
+        "nova-chat-history-changed",
+        handleHistoryChange
+      );
+    };
+  }, []);
 
   // =====================================================
   // FILE STATE
@@ -59,6 +84,17 @@ export default function ChatBox({ chat, loading }) {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFileId, setUploadedFileId] = useState(null);
+  const [uploadedFileType, setUploadedFileType] = useState(null);
+
+  // =====================================================
+  // IMAGE GENERATION
+  // =====================================================
+
+  const [imageGenerationMode, setImageGenerationMode] =
+    useState(false);
+
+  const [generatingImage, setGeneratingImage] =
+    useState(false);
 
   // =====================================================
   // VOICE STATE
@@ -110,10 +146,6 @@ export default function ChatBox({ chat, loading }) {
     });
   };
 
-  // =====================================================
-  // AUTO SCROLL
-  // =====================================================
-
   useEffect(() => {
     if (!messages.length) return;
 
@@ -121,29 +153,6 @@ export default function ChatBox({ chat, loading }) {
       scrollToBottom(false);
     });
   }, [messages]);
-
-
-
-  useEffect(() => {
-  const handleHistoryChange = (event) => {
-    const enabled =
-      event.detail?.enabled ?? true;
-
-    setChatHistoryEnabled(enabled);
-  };
-
-  window.addEventListener(
-    "nova-chat-history-changed",
-    handleHistoryChange
-  );
-
-  return () => {
-    window.removeEventListener(
-      "nova-chat-history-changed",
-      handleHistoryChange
-    );
-  };
-}, []);
 
   // =====================================================
   // LOAD CHAT
@@ -154,6 +163,7 @@ export default function ChatBox({ chat, loading }) {
       setMessages([]);
       setSelectedFile(null);
       setUploadedFileId(null);
+      setUploadedFileType(null);
       return;
     }
 
@@ -196,6 +206,13 @@ export default function ChatBox({ chat, loading }) {
           .getTracks()
           .forEach((track) => track.stop());
       }
+
+      // Revoke generated image URLs
+      messages.forEach((message) => {
+        if (message?.imageUrl) {
+          URL.revokeObjectURL(message.imageUrl);
+        }
+      });
     };
   }, []);
 
@@ -225,20 +242,28 @@ export default function ChatBox({ chat, loading }) {
   async function uploadFile(file) {
     if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      toast.error("Please upload a PDF file");
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(
+        "Only PDF, JPG, JPEG, PNG and WEBP files are supported."
+      );
       return;
     }
 
     const maxSize = 20 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      toast.error("PDF must be smaller than 20MB");
+      toast.error("File must be smaller than 20MB");
       return;
     }
 
     const formData = new FormData();
-
     formData.append("file", file);
 
     try {
@@ -256,20 +281,157 @@ export default function ChatBox({ chat, loading }) {
 
       setSelectedFile(file);
       setUploadedFileId(res.data.file_id);
+      setUploadedFileType(res.data.file_category);
 
-      toast.success("PDF uploaded successfully");
+      if (res.data.file_category === "image") {
+        toast.success("Image uploaded successfully");
+      } else {
+        toast.success("PDF uploaded successfully");
+      }
     } catch (err) {
-      console.log("PDF upload error:", err);
+      console.log("File upload error:", err);
 
       toast.error(
         err.response?.data?.detail ||
           err.response?.data?.message ||
-          "PDF upload failed"
+          "File upload failed"
       );
 
       setSelectedFile(null);
       setUploadedFileId(null);
+      setUploadedFileType(null);
     } finally {
+      setIsThinking(false);
+    }
+  }
+
+  // =====================================================
+  // ASK IMAGE
+  // =====================================================
+
+  async function askUploadedImage(question) {
+    if (!uploadedFileId) {
+      toast.error("Please upload an image first.");
+      return null;
+    }
+
+    const res = await api.post(
+      "/files/ask-image",
+      {
+        file_id: uploadedFileId,
+        question,
+      }
+    );
+
+    return res.data.answer || "";
+  }
+
+  // =====================================================
+  // GENERATE IMAGE
+  // =====================================================
+
+  async function generateAIImage(prompt) {
+    const cleanPrompt = prompt?.trim();
+
+    if (!cleanPrompt) {
+      toast.error("Please enter an image prompt.");
+      return;
+    }
+
+    if (!chat) {
+      toast.error("Please create a conversation first.");
+      return;
+    }
+
+    if (generatingImage || sending) return;
+
+    try {
+      setGeneratingImage(true);
+      setSending(true);
+      setIsThinking(true);
+
+      // User prompt
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "user",
+          content: cleanPrompt,
+        },
+      ]);
+
+      setText("");
+
+      requestAnimationFrame(() => {
+        scrollToBottom(true);
+      });
+
+      const res = await api.post(
+        "/files/generate-image",
+        {
+          prompt: cleanPrompt,
+        },
+        {
+          responseType: "blob",
+        }
+      );
+
+      if (!res.data || !res.data.size) {
+        throw new Error("No image was returned by the server.");
+      }
+
+      const imageUrl = URL.createObjectURL(res.data);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+          imageUrl,
+          isGeneratedImage: true,
+        },
+      ]);
+
+      toast.success("Image generated successfully!");
+    } catch (err) {
+      console.log("Image generation error:", err);
+
+      let message = "Image generation failed.";
+
+      if (err.response?.data instanceof Blob) {
+        try {
+          const errorText =
+            await err.response.data.text();
+
+          const parsed = JSON.parse(errorText);
+
+          message =
+            parsed.detail ||
+            parsed.message ||
+            message;
+        } catch {
+          // Keep default message
+        }
+      } else {
+        message =
+          err.response?.data?.detail ||
+          err.response?.data?.message ||
+          err.message ||
+          message;
+      }
+
+      toast.error(message);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Sorry, I couldn't generate that image. Please try again.",
+        },
+      ]);
+    } finally {
+      setGeneratingImage(false);
+      setSending(false);
       setIsThinking(false);
     }
   }
@@ -289,7 +451,7 @@ export default function ChatBox({ chat, loading }) {
   }
 
   // =====================================================
-  // MIC BUTTON
+  // MIC
   // =====================================================
 
   const handleMic = async () => {
@@ -330,7 +492,8 @@ export default function ChatBox({ chat, loading }) {
           audio: true,
         });
 
-      audioContextRef.current = new AudioContext();
+      audioContextRef.current =
+        new AudioContext();
 
       const source =
         audioContextRef.current.createMediaStreamSource(
@@ -592,8 +755,7 @@ export default function ChatBox({ chat, loading }) {
           i--
         ) {
           if (
-            updated[i].role ===
-            "assistant"
+            updated[i].role === "assistant"
           ) {
             updated[i] = {
               ...updated[i],
@@ -717,6 +879,15 @@ export default function ChatBox({ chat, loading }) {
 
     const cleanMessage = message.trim();
 
+    // ===================================================
+    // IMAGE GENERATION MODE
+    // ===================================================
+
+    if (imageGenerationMode) {
+      await generateAIImage(cleanMessage);
+      return;
+    }
+
     setText("");
     setSending(true);
     setIsThinking(true);
@@ -739,10 +910,50 @@ export default function ChatBox({ chat, loading }) {
 
     try {
       // =================================================
+      // IMAGE CHAT
+      // =================================================
+
+      if (
+        uploadedFileId &&
+        uploadedFileType === "image"
+      ) {
+        const answer =
+          await askUploadedImage(
+            cleanMessage
+          );
+
+        setIsThinking(false);
+
+        setMessages((prev) => {
+          const updated = [...prev];
+
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: answer,
+          };
+
+          return updated;
+        });
+
+        clearSelectedFile();
+
+        if (voiceMode) {
+          await speakAnswer(answer);
+        }
+
+        setSending(false);
+
+        return;
+      }
+
+      // =================================================
       // PDF CHAT
       // =================================================
 
-      if (uploadedFileId) {
+      if (
+        uploadedFileId &&
+        uploadedFileType === "pdf"
+      ) {
         const res = await api.post(
           "/files/chat-pdf",
           {
@@ -769,8 +980,7 @@ export default function ChatBox({ chat, loading }) {
           return updated;
         });
 
-        setSelectedFile(null);
-        setUploadedFileId(null);
+        clearSelectedFile();
 
         if (voiceMode) {
           await speakAnswer(answer);
@@ -910,6 +1120,16 @@ export default function ChatBox({ chat, loading }) {
   }
 
   // =====================================================
+  // CLEAR SELECTED FILE
+  // =====================================================
+
+  function clearSelectedFile() {
+    setSelectedFile(null);
+    setUploadedFileId(null);
+    setUploadedFileType(null);
+  }
+
+  // =====================================================
   // TEXT TO SPEECH
   // =====================================================
 
@@ -1030,15 +1250,12 @@ export default function ChatBox({ chat, loading }) {
   if (loading) {
     return (
       <div className="chat-container">
-
         <div className="chat-loading-screen">
-
           <div className="loading-orb">
             N
           </div>
 
           <div className="loading-text">
-
             <span>
               Preparing your workspace
             </span>
@@ -1048,11 +1265,8 @@ export default function ChatBox({ chat, loading }) {
               <i></i>
               <i></i>
             </div>
-
           </div>
-
         </div>
-
       </div>
     );
   }
@@ -1064,9 +1278,7 @@ export default function ChatBox({ chat, loading }) {
   if (!chat) {
     return (
       <div className="chat-container">
-
         <div className="chat-no-chat">
-
           <div className="no-chat-icon">
             N
           </div>
@@ -1079,9 +1291,7 @@ export default function ChatBox({ chat, loading }) {
             Create a new conversation
             to start exploring.
           </p>
-
         </div>
-
       </div>
     );
   }
@@ -1093,23 +1303,18 @@ export default function ChatBox({ chat, loading }) {
   return (
     <div className="chat-container">
 
-      {/* =================================================
-          WELCOME ANIMATION
-      ================================================= */}
+      {/* WELCOME */}
 
       {showWelcome && (
         <div className="nova-welcome-screen">
-
           <div className="nova-welcome-content">
 
             <div className="nova-welcome-logo">
-
               <span>N</span>
 
               <div className="nova-welcome-ring"></div>
 
               <div className="nova-welcome-glow"></div>
-
             </div>
 
             <div className="nova-welcome-text">
@@ -1129,21 +1334,16 @@ export default function ChatBox({ chat, loading }) {
             </div>
 
             <div className="nova-welcome-loader">
-
               <span></span>
               <span></span>
               <span></span>
-
             </div>
 
           </div>
-
         </div>
       )}
 
-      {/* =================================================
-          MESSAGES
-      ================================================= */}
+      {/* MESSAGES */}
 
       <div
         className="messages-area"
@@ -1158,19 +1358,13 @@ export default function ChatBox({ chat, loading }) {
               <div className="welcome-content">
 
                 <div className="welcome-logo">
-
                   <span>N</span>
-
                   <div className="logo-ring"></div>
-
                 </div>
 
                 <div className="welcome-badge">
-
                   <span className="welcome-dot"></span>
-
                   Nova AI is ready
-
                 </div>
 
                 <h2>
@@ -1180,8 +1374,9 @@ export default function ChatBox({ chat, loading }) {
                 <p>
                   Ask questions, explore
                   ideas, upload a PDF,
-                  or talk with Nova using
-                  voice mode.
+                  analyze an image,
+                  generate an image,
+                  or talk with Nova.
                 </p>
 
                 <div className="welcome-suggestions">
@@ -1226,10 +1421,6 @@ export default function ChatBox({ chat, loading }) {
             </div>
           )}
 
-        {/* =================================================
-            MESSAGE LIST
-        ================================================= */}
-
         <div className="message-list">
 
           {messages.map(
@@ -1245,8 +1436,15 @@ export default function ChatBox({ chat, loading }) {
 
                 content={msg.content}
 
+                imageUrl={msg.imageUrl}
+
+                isGeneratedImage={
+                  msg.isGeneratedImage
+                }
+
                 onRegenerate={
-                  msg.role === "assistant"
+                  msg.role === "assistant" &&
+                  !msg.imageUrl
                     ? regenerateMessage
                     : undefined
                 }
@@ -1267,12 +1465,9 @@ export default function ChatBox({ chat, loading }) {
 
         </div>
 
-        {/* =================================================
-            THINKING
-        ================================================= */}
+        {/* THINKING */}
 
         {isThinking && (
-
           <div className="nova-thinking">
 
             <div className="thinking-avatar">
@@ -1294,36 +1489,30 @@ export default function ChatBox({ chat, loading }) {
             </div>
 
           </div>
-
         )}
-
-        {/* =================================================
-            TYPING
-        ================================================= */}
 
         {sending &&
           !isSpeaking &&
           !isListening &&
           !isThinking && (
-
             <TypingIndicator />
-
           )}
 
         <div ref={bottomRef} />
 
       </div>
 
-      {/* =================================================
-          PDF PREVIEW
-      ================================================= */}
+      {/* FILE PREVIEW */}
 
       {selectedFile && (
-
         <div className="upload-preview">
 
           <div className="upload-preview-icon">
-            <FiPaperclip />
+            {uploadedFileType === "image" ? (
+              <FiImage />
+            ) : (
+              <FiPaperclip />
+            )}
           </div>
 
           <div className="upload-preview-info">
@@ -1333,7 +1522,9 @@ export default function ChatBox({ chat, loading }) {
             </strong>
 
             <span>
-              PDF ready for questions
+              {uploadedFileType === "image"
+                ? "Image ready for questions"
+                : "PDF ready for questions"}
             </span>
 
           </div>
@@ -1341,34 +1532,59 @@ export default function ChatBox({ chat, loading }) {
           <button
             type="button"
             className="remove-file"
-            onClick={() => {
-              setSelectedFile(null);
-              setUploadedFileId(null);
-            }}
+            onClick={clearSelectedFile}
             title="Remove file"
           >
             <FiX />
           </button>
 
         </div>
-
       )}
 
-      {/* =================================================
-          INPUT
-      ================================================= */}
+      {/* IMAGE GENERATION MODE */}
+
+      {imageGenerationMode && (
+        <div className="nova-image-generation-bar">
+
+          <div className="nova-image-generation-icon">
+            <FiImage />
+          </div>
+
+          <div>
+            <strong>
+              Image Generation
+            </strong>
+
+            <span>
+              Describe the image you want Nova AI to create.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setImageGenerationMode(false);
+              setText("");
+            }}
+            title="Exit image generation"
+          >
+            <FiX />
+          </button>
+
+        </div>
+      )}
+
+      {/* COMPOSER */}
 
       <div className="chat-composer-wrap">
 
         <div className="chat-input-area">
 
-          {/* Hidden file input */}
-
           <input
             ref={fileInputRef}
             type="file"
             className="file-input"
-            accept=".pdf,application/pdf"
+            accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
             onChange={(e) => {
 
               const file =
@@ -1383,7 +1599,7 @@ export default function ChatBox({ chat, loading }) {
             }}
           />
 
-          {/* Attach */}
+          {/* ATTACH */}
 
           <button
             type="button"
@@ -1391,12 +1607,41 @@ export default function ChatBox({ chat, loading }) {
             onClick={() =>
               fileInputRef.current?.click()
             }
-            title="Attach PDF"
+            title="Attach PDF or image"
+            disabled={sending}
           >
             <FiPaperclip />
           </button>
 
-          {/* Mic */}
+          {/* IMAGE GENERATION */}
+
+          <button
+            type="button"
+            className={`composer-btn ${
+              imageGenerationMode
+                ? "image-generation-active"
+                : ""
+            }`}
+            onClick={() => {
+
+              if (imageGenerationMode) {
+                setImageGenerationMode(false);
+              } else {
+                setImageGenerationMode(true);
+                setSelectedFile(null);
+                setUploadedFileId(null);
+                setUploadedFileType(null);
+                setText("");
+              }
+
+            }}
+            title="Generate image"
+            disabled={sending}
+          >
+            <FiImage />
+          </button>
+
+          {/* MIC */}
 
           <button
             type="button"
@@ -1419,6 +1664,10 @@ export default function ChatBox({ chat, loading }) {
                 ? "Stop recording"
                 : "Voice input"
             }
+            disabled={
+              imageGenerationMode ||
+              generatingImage
+            }
           >
 
             {recording ? (
@@ -1429,7 +1678,7 @@ export default function ChatBox({ chat, loading }) {
 
           </button>
 
-          {/* Voice mode */}
+          {/* VOICE MODE */}
 
           <button
             type="button"
@@ -1448,24 +1697,32 @@ export default function ChatBox({ chat, loading }) {
 
             }}
             title="Voice mode"
+            disabled={imageGenerationMode}
           >
             <FiHeadphones />
           </button>
 
-          {/* Input */}
+          {/* INPUT */}
 
           <textarea
             className="chat-input"
             value={text}
             placeholder={
-              recording
+              imageGenerationMode
+                ? "Describe the image you want..."
+                : recording
                 ? "Listening..."
                 : uploadedFileId
-                ? "Ask anything about this PDF..."
+                ? uploadedFileType === "image"
+                  ? "Ask anything about this image..."
+                  : "Ask anything about this PDF..."
                 : "Message Nova AI..."
             }
             rows={1}
-            disabled={recording}
+            disabled={
+              recording ||
+              generatingImage
+            }
             onChange={(e) => {
 
               setText(e.target.value);
@@ -1496,13 +1753,17 @@ export default function ChatBox({ chat, loading }) {
             }}
           />
 
-          {/* Send */}
+          {/* SEND */}
 
           <button
             type="button"
             className={`send-btn ${
               text.trim()
                 ? "send-ready"
+                : ""
+            } ${
+              imageGenerationMode
+                ? "image-send-btn"
                 : ""
             }`}
             onClick={() =>
@@ -1513,14 +1774,22 @@ export default function ChatBox({ chat, loading }) {
               !text.trim() ||
               recording
             }
-            title="Send message"
+            title={
+              imageGenerationMode
+                ? "Generate image"
+                : "Send message"
+            }
           >
-            <FiSend />
+            {imageGenerationMode ? (
+              <FiImage />
+            ) : (
+              <FiSend />
+            )}
           </button>
 
         </div>
 
-        {/* Composer footer */}
+        {/* FOOTER */}
 
         <div className="composer-footer">
 
@@ -1547,9 +1816,7 @@ export default function ChatBox({ chat, loading }) {
 
       </div>
 
-      {/* =================================================
-          VOICE MODAL
-      ================================================= */}
+      {/* VOICE MODAL */}
 
       <VoiceModal
         open={showVoiceModal}

@@ -8,6 +8,8 @@ from database import get_db
 from auth import get_current_user
 from models import UploadedFile, User
 
+from supabase import create_client
+
 
 router = APIRouter(
     prefix="/files",
@@ -16,36 +18,43 @@ router = APIRouter(
 
 
 # =====================================================
-# SUPABASE
+# SUPABASE CONFIG
 # =====================================================
-
-from supabase import create_client, Client
-
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    raise RuntimeError(
-        "SUPABASE_URL or SUPABASE_SERVICE_KEY is missing"
-    )
-
-
-supabase: Client = create_client(
-    SUPABASE_URL,
-    SUPABASE_SERVICE_KEY
-)
-
-
-# =====================================================
-# STORAGE BUCKET
-# =====================================================
 
 BUCKET_NAME = "nova-files"
 
 
 # =====================================================
-# Upload File
+# SUPABASE CLIENT
+# =====================================================
+
+supabase = None
+
+if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+    try:
+        supabase = create_client(
+            SUPABASE_URL,
+            SUPABASE_SERVICE_KEY
+        )
+
+        print("Supabase client initialized successfully.")
+
+    except Exception as e:
+        print("Supabase initialization error:", str(e))
+        supabase = None
+
+else:
+    print(
+        "WARNING: SUPABASE_URL or SUPABASE_SERVICE_KEY "
+        "is missing."
+    )
+
+
+# =====================================================
+# UPLOAD FILE
 # =====================================================
 
 @router.post("/upload")
@@ -54,6 +63,17 @@ async def upload_file(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
+    # -------------------------------------------------
+    # Check Supabase
+    # -------------------------------------------------
+
+    if supabase is None:
+        raise HTTPException(
+            status_code=500,
+            detail="File storage service is not configured."
+        )
+
 
     # -------------------------------------------------
     # Validate file
@@ -65,11 +85,18 @@ async def upload_file(
             detail="No file selected."
         )
 
+
+    # -------------------------------------------------
+    # Validate PDF
+    # -------------------------------------------------
+
     if file.content_type != "application/pdf":
+
         raise HTTPException(
             status_code=400,
             detail="Please upload a PDF file."
         )
+
 
     # -------------------------------------------------
     # Read file
@@ -81,13 +108,19 @@ async def upload_file(
 
     except Exception as e:
 
+        print("=" * 80)
         print("FILE READ ERROR:", str(e))
+        print("=" * 80)
 
         raise HTTPException(
             status_code=500,
             detail="Unable to read uploaded file."
         )
 
+
+    # -------------------------------------------------
+    # Empty file check
+    # -------------------------------------------------
 
     if not file_content:
 
@@ -98,7 +131,7 @@ async def upload_file(
 
 
     # -------------------------------------------------
-    # File size check
+    # File size
     # -------------------------------------------------
 
     max_size = 20 * 1024 * 1024  # 20 MB
@@ -119,12 +152,19 @@ async def upload_file(
         file.filename
     )[1].lower()
 
+    if extension != ".pdf":
+        extension = ".pdf"
+
+
     unique_filename = (
         f"{uuid.uuid4().hex}{extension}"
     )
 
 
-    # Store files separately for each user
+    # -------------------------------------------------
+    # User-specific storage path
+    # -------------------------------------------------
+
     storage_path = (
         f"user_{current_user.id}/"
         f"{unique_filename}"
@@ -137,8 +177,10 @@ async def upload_file(
 
     try:
 
-        supabase.storage \
-            .from_(BUCKET_NAME) \
+        result = (
+            supabase
+            .storage
+            .from_(BUCKET_NAME)
             .upload(
                 storage_path,
                 file_content,
@@ -147,17 +189,24 @@ async def upload_file(
                     "upsert": "false",
                 }
             )
+        )
+
+        print("=" * 80)
+        print("SUPABASE UPLOAD SUCCESS")
+        print("Storage path:", storage_path)
+        print("Result:", result)
+        print("=" * 80)
 
     except Exception as e:
 
         print("=" * 80)
-        print("SUPABASE UPLOAD ERROR:")
-        print(str(e))
+        print("SUPABASE UPLOAD ERROR")
+        print("Error:", str(e))
         print("=" * 80)
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to upload PDF to storage."
+            detail=f"Failed to upload PDF: {str(e)}"
         )
 
 
@@ -171,31 +220,52 @@ async def upload_file(
             user_id=current_user.id,
             filename=file.filename,
             filepath=storage_path,
-            filetype=file.content_type,
+            filetype="application/pdf",
         )
 
         db.add(uploaded)
+
         db.commit()
+
         db.refresh(uploaded)
 
     except Exception as e:
 
         print("=" * 80)
-        print("DATABASE UPLOAD ERROR:")
-        print(str(e))
+        print("DATABASE SAVE ERROR")
+        print("Error:", str(e))
         print("=" * 80)
 
-        # Try removing uploaded file
+
+        # ---------------------------------------------
+        # Rollback database
+        # ---------------------------------------------
+
+        db.rollback()
+
+
+        # ---------------------------------------------
+        # Remove uploaded file from Supabase
+        # ---------------------------------------------
+
         try:
 
-            supabase.storage \
-                .from_(BUCKET_NAME) \
+            (
+                supabase
+                .storage
+                .from_(BUCKET_NAME)
                 .remove([
                     storage_path
                 ])
+            )
 
-        except Exception:
-            pass
+        except Exception as cleanup_error:
+
+            print(
+                "Storage cleanup error:",
+                str(cleanup_error)
+            )
+
 
         raise HTTPException(
             status_code=500,
@@ -204,7 +274,7 @@ async def upload_file(
 
 
     # -------------------------------------------------
-    # Response
+    # Success
     # -------------------------------------------------
 
     return {
@@ -213,4 +283,26 @@ async def upload_file(
         "filename": uploaded.filename,
         "filetype": uploaded.filetype,
         "storage_path": storage_path,
+    }
+
+
+# =====================================================
+# STORAGE STATUS
+# =====================================================
+
+@router.get("/storage-status")
+def storage_status():
+
+    if supabase is None:
+
+        return {
+            "status": "error",
+            "storage": "not_configured"
+        }
+
+
+    return {
+        "status": "success",
+        "storage": "supabase",
+        "bucket": BUCKET_NAME
     }

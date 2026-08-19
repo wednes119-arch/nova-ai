@@ -1,11 +1,21 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Depends,
+    HTTPException
+)
+
 from fastapi.responses import FileResponse
+
 from sqlalchemy.orm import Session
 
 import os
 import uuid
 import shutil
 import tempfile
+
+from supabase import create_client, Client
 
 from database import get_db
 from auth import get_current_user
@@ -17,6 +27,7 @@ from schemas import (
     AskPdf,
     AskImage,
     TTSRequest,
+    GenerateImageRequest,
 )
 
 from ai import (
@@ -24,9 +35,8 @@ from ai import (
     ask_image,
     speech_to_text,
     text_to_speech,
+    generate_image,
 )
-
-from supabase import create_client, Client
 
 
 # =====================================================
@@ -40,11 +50,16 @@ router = APIRouter(
 
 
 # =====================================================
-# SUPABASE CONFIGURATION
+# SUPABASE
 # =====================================================
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+SUPABASE_URL = os.getenv(
+    "SUPABASE_URL"
+)
+
+SUPABASE_SERVICE_KEY = os.getenv(
+    "SUPABASE_SERVICE_KEY"
+)
 
 
 if not SUPABASE_URL:
@@ -66,21 +81,43 @@ supabase: Client = create_client(
 
 
 # =====================================================
-# STORAGE BUCKET
+# STORAGE
 # =====================================================
 
 BUCKET_NAME = "nova-files"
 
+MAX_FILE_SIZE = 20 * 1024 * 1024
+
 
 # =====================================================
-# Upload PDF
+# ALLOWED FILE TYPES
+# =====================================================
+
+ALLOWED_TYPES = {
+
+    "application/pdf": "pdf",
+
+    "image/jpeg": "image",
+    "image/png": "image",
+    "image/webp": "image",
+}
+
+
+# =====================================================
+# UPLOAD FILE
 # =====================================================
 
 @router.post("/upload")
 async def upload_file(
+
     file: UploadFile = File(...),
+
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
 ):
 
     # -------------------------------------------------
@@ -88,6 +125,7 @@ async def upload_file(
     # -------------------------------------------------
 
     if not file.filename:
+
         raise HTTPException(
             status_code=400,
             detail="No file selected."
@@ -95,14 +133,17 @@ async def upload_file(
 
 
     # -------------------------------------------------
-    # Validate file type
+    # Validate type
     # -------------------------------------------------
 
-    if file.content_type != "application/pdf":
+    if file.content_type not in ALLOWED_TYPES:
 
         raise HTTPException(
             status_code=400,
-            detail="Please upload a PDF file."
+            detail=(
+                "Unsupported file type. "
+                "Allowed: PDF, JPG, JPEG, PNG, WEBP."
+            )
         )
 
 
@@ -128,7 +169,7 @@ async def upload_file(
 
 
     # -------------------------------------------------
-    # Empty file check
+    # Empty file
     # -------------------------------------------------
 
     if not file_content:
@@ -140,16 +181,14 @@ async def upload_file(
 
 
     # -------------------------------------------------
-    # File size check
+    # File size
     # -------------------------------------------------
 
-    max_size = 20 * 1024 * 1024
-
-    if len(file_content) > max_size:
+    if len(file_content) > MAX_FILE_SIZE:
 
         raise HTTPException(
             status_code=400,
-            detail="PDF must be smaller than 20MB."
+            detail="File must be smaller than 20MB."
         )
 
 
@@ -161,13 +200,25 @@ async def upload_file(
         file.filename
     )[1].lower()
 
-    if extension != ".pdf":
 
-        extension = ".pdf"
+    if not extension:
+
+        if file.content_type == "application/pdf":
+            extension = ".pdf"
+
+        elif file.content_type == "image/jpeg":
+            extension = ".jpg"
+
+        elif file.content_type == "image/png":
+            extension = ".png"
+
+        elif file.content_type == "image/webp":
+            extension = ".webp"
 
 
     unique_filename = (
-        f"{uuid.uuid4().hex}{extension}"
+        f"{uuid.uuid4().hex}"
+        f"{extension}"
     )
 
 
@@ -181,18 +232,11 @@ async def upload_file(
     )
 
 
-    # =================================================
-    # Upload to Supabase Storage
-    # =================================================
+    # -------------------------------------------------
+    # Upload to Supabase
+    # -------------------------------------------------
 
     try:
-
-        print("=" * 80)
-        print("SUPABASE PDF UPLOAD")
-        print("Original filename:", file.filename)
-        print("Storage path:", storage_path)
-        print("=" * 80)
-
 
         supabase.storage \
             .from_(BUCKET_NAME) \
@@ -200,14 +244,10 @@ async def upload_file(
                 storage_path,
                 file_content,
                 {
-                    "content-type": "application/pdf",
+                    "content-type": file.content_type,
                     "upsert": "false",
                 }
             )
-
-
-        print("SUPABASE UPLOAD SUCCESS")
-
 
     except Exception as e:
 
@@ -216,26 +256,31 @@ async def upload_file(
         print(str(e))
         print("=" * 80)
 
-
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to upload PDF: {str(e)}"
+            detail=(
+                "Failed to upload file to storage."
+            )
         )
 
 
-    # =================================================
-    # Save database record
-    # =================================================
+    # -------------------------------------------------
+    # Save DB record
+    # -------------------------------------------------
 
     try:
 
         uploaded = UploadedFile(
-            user_id=current_user.id,
-            filename=file.filename,
-            filepath=storage_path,
-            filetype=file.content_type,
-        )
 
+            user_id=current_user.id,
+
+            filename=file.filename,
+
+            filepath=storage_path,
+
+            filetype=file.content_type,
+
+        )
 
         db.add(uploaded)
 
@@ -243,25 +288,15 @@ async def upload_file(
 
         db.refresh(uploaded)
 
-
-        print(
-            "DATABASE RECORD CREATED:",
-            uploaded.id
-        )
-
-
     except Exception as e:
 
         print("=" * 80)
-        print("DATABASE UPLOAD ERROR:")
+        print("DATABASE FILE ERROR:")
         print(str(e))
         print("=" * 80)
 
 
-        # ---------------------------------------------
-        # Rollback Supabase upload
-        # ---------------------------------------------
-
+        # Remove from Supabase
         try:
 
             supabase.storage \
@@ -270,23 +305,21 @@ async def upload_file(
                     storage_path
                 ])
 
-        except Exception as cleanup_error:
-
-            print(
-                "SUPABASE CLEANUP ERROR:",
-                str(cleanup_error)
-            )
+        except Exception:
+            pass
 
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to save uploaded file information."
+            detail=(
+                "Failed to save file information."
+            )
         )
 
 
-    # =================================================
+    # -------------------------------------------------
     # Response
-    # =================================================
+    # -------------------------------------------------
 
     return {
 
@@ -300,31 +333,49 @@ async def upload_file(
 
         "storage_path": storage_path,
 
+        "file_category":
+            ALLOWED_TYPES[
+                file.content_type
+            ],
     }
 
 
 # =====================================================
-# Chat With PDF
+# CHAT WITH PDF
 # =====================================================
 
 @router.post("/chat-pdf")
 def chat_with_pdf(
+
     data: AskPdf,
+
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
 ):
 
     # -------------------------------------------------
-    # Find uploaded file
+    # Find file
     # -------------------------------------------------
 
     uploaded = (
+
         db.query(UploadedFile)
+
         .filter(
+
             UploadedFile.id == data.file_id,
-            UploadedFile.user_id == current_user.id
+
+            UploadedFile.user_id ==
+            current_user.id
+
         )
+
         .first()
+
     )
 
 
@@ -337,105 +388,89 @@ def chat_with_pdf(
 
 
     # -------------------------------------------------
-    # Check PDF
+    # PDF validation
     # -------------------------------------------------
 
     if uploaded.filetype != "application/pdf":
 
         raise HTTPException(
             status_code=400,
-            detail="Please upload a PDF file."
+            detail="This file is not a PDF."
         )
 
+
+    # -------------------------------------------------
+    # Download PDF from Supabase
+    # -------------------------------------------------
 
     temp_path = None
 
-
     try:
 
-        # =================================================
-        # Download PDF from Supabase
-        # =================================================
-
-        print("=" * 80)
-        print("DOWNLOADING PDF FROM SUPABASE")
-        print("Storage path:", uploaded.filepath)
-        print("=" * 80)
-
-
         pdf_bytes = (
+
             supabase.storage
+
             .from_(BUCKET_NAME)
-            .download(uploaded.filepath)
-        )
 
-
-        if not pdf_bytes:
-
-            raise Exception(
-                "PDF download returned empty data."
+            .download(
+                uploaded.filepath
             )
 
-
-        print(
-            "PDF DOWNLOADED:",
-            len(pdf_bytes),
-            "bytes"
         )
 
 
-        # =================================================
-        # Create temporary PDF
-        # =================================================
+        # ---------------------------------------------
+        # Temporary file
+        # ---------------------------------------------
 
-        with tempfile.NamedTemporaryFile(
+        temp_file = tempfile.NamedTemporaryFile(
             delete=False,
             suffix=".pdf"
-        ) as temp_file:
-
-            temp_file.write(pdf_bytes)
-
-            temp_path = temp_file.name
-
-
-        print(
-            "TEMP PDF:",
-            temp_path
         )
 
+        temp_path = temp_file.name
 
-        # =================================================
+        temp_file.write(pdf_bytes)
+
+        temp_file.close()
+
+
+        # ---------------------------------------------
         # Extract PDF text
-        # =================================================
+        # ---------------------------------------------
 
         pdf_text = extract_pdf_text(
             temp_path
         )
 
 
+        print("=" * 80)
         print(
-            "PDF TEXT LENGTH:",
+            "PDF:",
+            uploaded.filename
+        )
+        print(
+            "PDF LENGTH:",
             len(pdf_text)
         )
+        print("=" * 80)
 
 
-        if not pdf_text or not pdf_text.strip():
+        if not pdf_text.strip():
 
             raise HTTPException(
                 status_code=400,
-                detail="No readable text found inside PDF."
+                detail=(
+                    "No readable text found "
+                    "inside this PDF."
+                )
             )
 
 
-        # =================================================
+        # ---------------------------------------------
         # Ask AI
-        # =================================================
-
-        print(
-            "PDF QUESTION:",
-            data.question
-        )
-
+        # ---------------------------------------------
 
         answer = ask_pdf(
             pdf_text,
@@ -443,23 +478,15 @@ def chat_with_pdf(
         )
 
 
-        print(
-            "PDF ANSWER:",
-            answer
-        )
-
-
-        # =================================================
-        # Response
-        # =================================================
-
         return {
 
             "status": "success",
 
-            "filename": uploaded.filename,
+            "filename":
+                uploaded.filename,
 
-            "answer": answer
+            "answer":
+                answer
 
         }
 
@@ -476,18 +503,15 @@ def chat_with_pdf(
         print(str(e))
         print("=" * 80)
 
-
         raise HTTPException(
             status_code=500,
-            detail=f"PDF processing failed: {str(e)}"
+            detail=(
+                f"PDF processing failed: {str(e)}"
+            )
         )
 
 
     finally:
-
-        # =================================================
-        # Remove temporary file
-        # =================================================
 
         if (
             temp_path
@@ -498,23 +522,25 @@ def chat_with_pdf(
 
                 os.remove(temp_path)
 
-            except Exception as e:
-
-                print(
-                    "TEMP FILE CLEANUP ERROR:",
-                    str(e)
-                )
+            except Exception:
+                pass
 
 
 # =====================================================
-# Image Understanding
+# CHAT WITH IMAGE
 # =====================================================
 
 @router.post("/ask-image")
 def ask_uploaded_image(
+
     data: AskImage,
+
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
 ):
 
     # -------------------------------------------------
@@ -522,12 +548,20 @@ def ask_uploaded_image(
     # -------------------------------------------------
 
     uploaded = (
+
         db.query(UploadedFile)
+
         .filter(
+
             UploadedFile.id == data.file_id,
-            UploadedFile.user_id == current_user.id
+
+            UploadedFile.user_id ==
+            current_user.id
+
         )
+
         .first()
+
     )
 
 
@@ -535,12 +569,12 @@ def ask_uploaded_image(
 
         raise HTTPException(
             status_code=404,
-            detail="File not found."
+            detail="Image not found."
         )
 
 
     # -------------------------------------------------
-    # Check image
+    # Validate image
     # -------------------------------------------------
 
     if not uploaded.filetype.startswith(
@@ -549,14 +583,59 @@ def ask_uploaded_image(
 
         raise HTTPException(
             status_code=400,
-            detail="Please upload an image."
+            detail="Uploaded file is not an image."
         )
+
+
+    temp_path = None
 
 
     try:
 
+        # ---------------------------------------------
+        # Download image from Supabase
+        # ---------------------------------------------
+
+        image_bytes = (
+
+            supabase.storage
+
+            .from_(BUCKET_NAME)
+
+            .download(
+                uploaded.filepath
+            )
+
+        )
+
+
+        # ---------------------------------------------
+        # Temporary image
+        # ---------------------------------------------
+
+        extension = os.path.splitext(
+            uploaded.filename
+        )[1] or ".jpg"
+
+
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=extension
+        )
+
+        temp_path = temp_file.name
+
+        temp_file.write(image_bytes)
+
+        temp_file.close()
+
+
+        # ---------------------------------------------
+        # Ask Gemini Vision
+        # ---------------------------------------------
+
         answer = ask_image(
-            uploaded.filepath,
+            temp_path,
             data.question
         )
 
@@ -565,36 +644,163 @@ def ask_uploaded_image(
 
             "status": "success",
 
-            "filename": uploaded.filename,
+            "filename":
+                uploaded.filename,
 
-            "answer": answer
+            "answer":
+                answer
 
         }
 
 
     except Exception as e:
 
-        print(
-            "IMAGE CHAT ERROR:",
-            str(e)
-        )
-
+        print("=" * 80)
+        print("IMAGE CHAT ERROR:")
+        print(str(e))
+        print("=" * 80)
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail=(
+                f"Image processing failed: {str(e)}"
+            )
+        )
+
+
+    finally:
+
+        if (
+            temp_path
+            and os.path.exists(temp_path)
+        ):
+
+            try:
+
+                os.remove(temp_path)
+
+            except Exception:
+                pass
+
+
+# =====================================================
+# AI IMAGE GENERATION
+# =====================================================
+
+@router.post("/generate-image")
+def generate_ai_image(
+
+    data: GenerateImageRequest,
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+
+):
+
+    # -------------------------------------------------
+    # Validate prompt
+    # -------------------------------------------------
+
+    if not data.prompt.strip():
+
+        raise HTTPException(
+            status_code=400,
+            detail="Image prompt is required."
+        )
+
+
+    temp_path = None
+
+
+    try:
+
+        # ---------------------------------------------
+        # Generate image
+        # ---------------------------------------------
+
+        image = generate_image(
+            data.prompt.strip()
+        )
+
+
+        # ---------------------------------------------
+        # Temporary PNG
+        # ---------------------------------------------
+
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".png"
+        )
+
+        temp_path = temp_file.name
+
+        temp_file.close()
+
+
+        # ---------------------------------------------
+        # Save generated image
+        # ---------------------------------------------
+
+        image.save(
+            temp_path,
+            format="PNG"
+        )
+
+
+        print(
+            "Generated image:",
+            temp_path
+        )
+
+
+        # ---------------------------------------------
+        # Return image
+        # ---------------------------------------------
+
+        return FileResponse(
+
+            path=temp_path,
+
+            media_type="image/png",
+
+            filename="nova-generated.png"
+
+        )
+
+
+    except Exception as e:
+
+        print("=" * 80)
+        print("IMAGE GENERATION ERROR:")
+        print(str(e))
+        print("=" * 80)
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"Image generation failed: {str(e)}"
+            )
         )
 
 
 # =====================================================
-# Speech To Text
+# SPEECH TO TEXT
 # =====================================================
 
 @router.post("/speech")
 def speech_upload(
+
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user)
+
+    current_user: User = Depends(
+        get_current_user
+    )
+
 ):
+
+    temp_path = None
+
 
     suffix = (
         os.path.splitext(
@@ -604,14 +810,11 @@ def speech_upload(
     )
 
 
-    temp_path = None
-
-
     try:
 
-        # -------------------------------------------------
-        # Temporary audio file
-        # -------------------------------------------------
+        # ---------------------------------------------
+        # Temporary audio
+        # ---------------------------------------------
 
         with tempfile.NamedTemporaryFile(
             delete=False,
@@ -632,9 +835,9 @@ def speech_upload(
         )
 
 
-        # -------------------------------------------------
+        # ---------------------------------------------
         # Speech recognition
-        # -------------------------------------------------
+        # ---------------------------------------------
 
         text = speech_to_text(
             temp_path
@@ -651,32 +854,31 @@ def speech_upload(
 
             "status": "success",
 
-            "filename": file.filename,
+            "filename":
+                file.filename,
 
-            "text": text
+            "text":
+                text
 
         }
 
 
     except Exception as e:
 
-        print(
-            "Speech Error:",
-            str(e)
-        )
-
+        print("=" * 80)
+        print("SPEECH ERROR:")
+        print(str(e))
+        print("=" * 80)
 
         raise HTTPException(
             status_code=500,
-            detail=f"Speech recognition failed: {str(e)}"
+            detail=(
+                f"Speech recognition failed: {str(e)}"
+            )
         )
 
 
     finally:
-
-        # -------------------------------------------------
-        # Cleanup
-        # -------------------------------------------------
 
         if (
             temp_path
@@ -692,12 +894,14 @@ def speech_upload(
 
 
 # =====================================================
-# Text To Speech
+# TEXT TO SPEECH
 # =====================================================
 
 @router.post("/tts")
 def tts(
+
     data: TTSRequest
+
 ):
 
     try:
@@ -708,9 +912,13 @@ def tts(
 
 
         return FileResponse(
+
             path=audio_path,
+
             media_type="audio/mpeg",
+
             filename="nova_ai.mp3"
+
         )
 
 
@@ -721,15 +929,14 @@ def tts(
             str(e)
         )
 
-
         raise HTTPException(
             status_code=500,
-            detail=f"Text to speech failed: {str(e)}"
+            detail="Text to speech failed."
         )
 
 
 # =====================================================
-# Supported File Types
+# SUPPORTED FILE TYPES
 # =====================================================
 
 @router.get("/supported-types")
@@ -762,25 +969,7 @@ def supported_types():
 
 
 # =====================================================
-# Storage Status
-# =====================================================
-
-@router.get("/storage-status")
-def storage_status():
-
-    return {
-
-        "status": "success",
-
-        "storage": "supabase",
-
-        "bucket": BUCKET_NAME
-
-    }
-
-
-# =====================================================
-# Health Check
+# HEALTH CHECK
 # =====================================================
 
 @router.get("/status")
@@ -790,13 +979,17 @@ def file_status():
 
         "status": "success",
 
-        "message": "Upload API Working",
+        "storage": "supabase",
+
+        "bucket": BUCKET_NAME,
 
         "services": {
 
             "pdf_chat": True,
 
             "image_chat": True,
+
+            "image_generation": True,
 
             "speech_to_text": True,
 

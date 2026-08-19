@@ -3,11 +3,37 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 from google import genai
-from google.genai import types
 from PIL import Image
 from gtts import gTTS
+from huggingface_hub import InferenceClient
+
+
+# =====================================================
+# ENVIRONMENT
+# =====================================================
 
 load_dotenv()
+
+
+# =====================================================
+# API KEYS
+# =====================================================
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY is missing")
+
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is missing")
+
+
+if not HF_TOKEN:
+    raise RuntimeError("HF_TOKEN is missing")
 
 
 # =====================================================
@@ -15,11 +41,22 @@ load_dotenv()
 # =====================================================
 
 groq_client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
+    api_key=GROQ_API_KEY
 )
 
+
 gemini_client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
+    api_key=GEMINI_API_KEY
+)
+
+
+# =====================================================
+# HUGGING FACE CLIENT
+# =====================================================
+
+hf_client = InferenceClient(
+    provider="auto",
+    api_key=HF_TOKEN,
 )
 
 
@@ -31,7 +68,8 @@ GROQ_MODEL = "openai/gpt-oss-20b"
 
 GEMINI_VISION_MODEL = "gemini-2.5-flash"
 
-GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
+# Hugging Face image generation
+HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
 
 
 # =====================================================
@@ -44,7 +82,7 @@ def ask_ai(messages):
         model=GROQ_MODEL,
         messages=messages,
         temperature=0.7,
-        max_tokens=1024
+        max_tokens=1024,
     )
 
     return response.choices[0].message.content
@@ -64,15 +102,15 @@ def generate_title(message: str):
                 "content": (
                     "Generate a short chat title in 3 to 5 words. "
                     "Return only the title. Do not use quotes."
-                )
+                ),
             },
             {
                 "role": "user",
-                "content": message
-            }
+                "content": message,
+            },
         ],
         temperature=0.2,
-        max_tokens=20
+        max_tokens=20,
     )
 
     return response.choices[0].message.content.strip()
@@ -105,7 +143,7 @@ Do not guess.
 If the answer is not present, reply exactly:
 
 I couldn't find that information in the document.
-"""
+""",
             },
             {
                 "role": "user",
@@ -119,8 +157,8 @@ QUESTION:
 {question}
 
 Answer only from the PDF.
-"""
-            }
+""",
+            },
         ],
         temperature=0,
         max_tokens=700,
@@ -143,8 +181,8 @@ def ask_image(image_path: str, question: str):
             model=GEMINI_VISION_MODEL,
             contents=[
                 image,
-                question
-            ]
+                question,
+            ],
         )
 
         return (
@@ -164,6 +202,7 @@ def ask_image(image_path: str, question: str):
 
 # =====================================================
 # AI IMAGE GENERATION
+# HUGGING FACE
 # =====================================================
 
 def generate_image(prompt: str):
@@ -171,38 +210,29 @@ def generate_image(prompt: str):
     try:
 
         print("=" * 80)
-        print("NOVA AI IMAGE GENERATION")
+        print("NOVA AI - HUGGING FACE IMAGE GENERATION")
+        print("MODEL:", HF_IMAGE_MODEL)
         print("PROMPT:", prompt)
         print("=" * 80)
 
-        response = gemini_client.models.generate_content(
-            model=GEMINI_IMAGE_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"]
+        image = hf_client.text_to_image(
+            prompt=prompt,
+            model=HF_IMAGE_MODEL,
+        )
+
+        if image is None:
+            raise Exception(
+                "Hugging Face did not return an image."
             )
-        )
 
-        # ---------------------------------------------
-        # Find generated image
-        # ---------------------------------------------
+        print("Hugging Face image generated successfully.")
 
-        for part in response.parts:
-
-            if part.inline_data is not None:
-
-                image = part.as_image()
-
-                return image
-
-        raise Exception(
-            "Gemini did not return an image."
-        )
+        return image
 
     except Exception as e:
 
         print("=" * 80)
-        print("IMAGE GENERATION ERROR:")
+        print("HUGGING FACE IMAGE GENERATION ERROR:")
         print(str(e))
         print("=" * 80)
 
@@ -220,7 +250,7 @@ def ask_ai_stream(messages):
         messages=messages,
         temperature=0.7,
         max_tokens=1024,
-        stream=True
+        stream=True,
     )
 
 
@@ -232,7 +262,7 @@ def text_to_speech(text: str):
 
     os.makedirs(
         "uploads",
-        exist_ok=True
+        exist_ok=True,
     )
 
     filename = "uploads/output.mp3"
@@ -240,7 +270,7 @@ def text_to_speech(text: str):
     tts = gTTS(
         text=text,
         lang="en",
-        slow=False
+        slow=False,
     )
 
     tts.save(filename)
@@ -263,7 +293,7 @@ def speech_to_text(audio_path: str):
             .create(
                 file=audio_file,
                 model="whisper-large-v3-turbo",
-                response_format="text"
+                response_format="text",
             )
         )
 
@@ -271,7 +301,7 @@ def speech_to_text(audio_path: str):
 
 
 # =====================================================
-# HEALTH CHECK
+# AI STATUS
 # =====================================================
 
 def ai_status():
@@ -280,5 +310,6 @@ def ai_status():
         "groq": "connected",
         "gemini": "connected",
         "vision": GEMINI_VISION_MODEL,
-        "image_generation": GEMINI_IMAGE_MODEL
+        "image_generation": "Hugging Face",
+        "image_model": HF_IMAGE_MODEL,
     }

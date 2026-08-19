@@ -1,329 +1,216 @@
-from fastapi import APIRouter, UploadFile, File, Depends
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import shutil
 import os
+import uuid
 
 from database import get_db
 from auth import get_current_user
 from models import UploadedFile, User
-from pdf_utils import extract_pdf_text
 
-from schemas import (
-    AskPdf,
-    AskImage,
-    TTSRequest,
-)
-
-from ai import (
-    ask_pdf,
-    ask_image,
-    speech_to_text,
-    text_to_speech,
-)
 
 router = APIRouter(
     prefix="/files",
     tags=["Files"]
 )
 
+
+# =====================================================
+# SUPABASE
+# =====================================================
+
+from supabase import create_client, Client
+
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    raise RuntimeError(
+        "SUPABASE_URL or SUPABASE_SERVICE_KEY is missing"
+    )
+
+
+supabase: Client = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY
+)
+
+
+# =====================================================
+# STORAGE BUCKET
+# =====================================================
+
+BUCKET_NAME = "nova-files"
+
+
 # =====================================================
 # Upload File
 # =====================================================
 
 @router.post("/upload")
-def upload_file(
+async def upload_file(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
 
-    os.makedirs("uploads", exist_ok=True)
+    # -------------------------------------------------
+    # Validate file
+    # -------------------------------------------------
 
-    filepath = os.path.join(
-        "uploads",
+    if not file.filename:
+        raise HTTPException(
+            status_code=400,
+            detail="No file selected."
+        )
+
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a PDF file."
+        )
+
+    # -------------------------------------------------
+    # Read file
+    # -------------------------------------------------
+
+    try:
+
+        file_content = await file.read()
+
+    except Exception as e:
+
+        print("FILE READ ERROR:", str(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to read uploaded file."
+        )
+
+
+    if not file_content:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is empty."
+        )
+
+
+    # -------------------------------------------------
+    # File size check
+    # -------------------------------------------------
+
+    max_size = 20 * 1024 * 1024  # 20 MB
+
+    if len(file_content) > max_size:
+
+        raise HTTPException(
+            status_code=400,
+            detail="PDF must be smaller than 20MB."
+        )
+
+
+    # -------------------------------------------------
+    # Generate unique filename
+    # -------------------------------------------------
+
+    extension = os.path.splitext(
         file.filename
+    )[1].lower()
+
+    unique_filename = (
+        f"{uuid.uuid4().hex}{extension}"
     )
 
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
 
-    uploaded = UploadedFile(
-        user_id=current_user.id,
-        filename=file.filename,
-        filepath=filepath,
-        filetype=file.content_type,
+    # Store files separately for each user
+    storage_path = (
+        f"user_{current_user.id}/"
+        f"{unique_filename}"
     )
 
-    db.add(uploaded)
-    db.commit()
-    db.refresh(uploaded)
+
+    # -------------------------------------------------
+    # Upload to Supabase Storage
+    # -------------------------------------------------
+
+    try:
+
+        supabase.storage \
+            .from_(BUCKET_NAME) \
+            .upload(
+                storage_path,
+                file_content,
+                {
+                    "content-type": "application/pdf",
+                    "upsert": "false",
+                }
+            )
+
+    except Exception as e:
+
+        print("=" * 80)
+        print("SUPABASE UPLOAD ERROR:")
+        print(str(e))
+        print("=" * 80)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to upload PDF to storage."
+        )
+
+
+    # -------------------------------------------------
+    # Save database record
+    # -------------------------------------------------
+
+    try:
+
+        uploaded = UploadedFile(
+            user_id=current_user.id,
+            filename=file.filename,
+            filepath=storage_path,
+            filetype=file.content_type,
+        )
+
+        db.add(uploaded)
+        db.commit()
+        db.refresh(uploaded)
+
+    except Exception as e:
+
+        print("=" * 80)
+        print("DATABASE UPLOAD ERROR:")
+        print(str(e))
+        print("=" * 80)
+
+        # Try removing uploaded file
+        try:
+
+            supabase.storage \
+                .from_(BUCKET_NAME) \
+                .remove([
+                    storage_path
+                ])
+
+        except Exception:
+            pass
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save uploaded file information."
+        )
+
+
+    # -------------------------------------------------
+    # Response
+    # -------------------------------------------------
 
     return {
         "status": "success",
         "file_id": uploaded.id,
         "filename": uploaded.filename,
         "filetype": uploaded.filetype,
-    }
-
-
-# =====================================================
-# Chat With PDF
-# =====================================================
-
-@router.post("/chat-pdf")
-def chat_with_pdf(
-    data: AskPdf,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    uploaded = (
-        db.query(UploadedFile)
-        .filter(
-            UploadedFile.id == data.file_id,
-            UploadedFile.user_id == current_user.id
-        )
-        .first()
-    )
-
-    if not uploaded:
-        return {
-            "status": "error",
-            "message": "File not found"
-        }
-
-    # Check PDF
-    if uploaded.filetype != "application/pdf":
-        return {
-            "status": "error",
-            "message": "Please upload a PDF file."
-        }
-
-    # Check file exists
-    if not os.path.exists(uploaded.filepath):
-        return {
-            "status": "error",
-            "message": "PDF file does not exist on server."
-        }
-
-    try:
-
-        # Extract PDF text
-        pdf_text = extract_pdf_text(
-            uploaded.filepath
-        )
-
-        print("=" * 80)
-        print("PDF FILE:", uploaded.filename)
-        print("PDF LENGTH:", len(pdf_text))
-        print("=" * 80)
-
-        if not pdf_text.strip():
-            return {
-                "status": "error",
-                "message": "No text found inside PDF."
-            }
-
-        # Ask AI
-        answer = ask_pdf(
-            pdf_text,
-            data.question
-        )
-
-        print("QUESTION:", data.question)
-        print("ANSWER:", answer)
-        print("=" * 80)
-
-        return {
-            "status": "success",
-            "filename": uploaded.filename,
-            "answer": answer
-        }
-
-    except Exception as e:
-
-        print("PDF CHAT ERROR:", str(e))
-
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
-
-# =====================================================
-# Image Understanding
-# =====================================================
-
-@router.post("/ask-image")
-def ask_uploaded_image(
-    data: AskImage,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-
-    uploaded = (
-        db.query(UploadedFile)
-        .filter(
-            UploadedFile.id == data.file_id,
-            UploadedFile.user_id == current_user.id
-        )
-        .first()
-    )
-
-    if not uploaded:
-        return {
-            "status": "error",
-            "message": "File not found."
-        }
-
-    if not uploaded.filetype.startswith("image/"):
-        return {
-            "status": "error",
-            "message": "Please upload an image."
-        }
-
-    try:
-
-        answer = ask_image(
-            uploaded.filepath,
-            data.question
-        )
-
-        return {
-            "status": "success",
-            "filename": uploaded.filename,
-            "answer": answer
-        }
-
-    except Exception as e:
-
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-   # =====================================================
-# Speech To Text
-# =====================================================
-
-@router.post("/speech")
-def speech_upload(
-    file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user)
-):
-    import tempfile
-
-    suffix = os.path.splitext(file.filename or "")[1] or ".webm"
-
-    temp_path = None
-
-    try:
-        with tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=suffix
-        ) as temp_file:
-
-            shutil.copyfileobj(
-                file.file,
-                temp_file
-            )
-
-            temp_path = temp_file.name
-
-        print("Speech temp file:", temp_path)
-
-        text = speech_to_text(temp_path)
-
-        print("Recognized Text:", text)
-
-        return {
-            "status": "success",
-            "filename": file.filename,
-            "text": text
-        }
-
-    except Exception as e:
-
-        print("Speech Error:", str(e))
-
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-    finally:
-
-        if temp_path and os.path.exists(temp_path):
-
-            try:
-                os.remove(temp_path)
-            except Exception:
-                pass
-
-
-# =====================================================
-# Text To Speech
-# =====================================================
-
-@router.post("/tts")
-def tts(data: TTSRequest):
-
-    audio_path = text_to_speech(data.text)
-
-    return FileResponse(
-        path=audio_path,
-        media_type="audio/mpeg",
-        filename="nova_ai.mp3"
-    )
-
-
-# =====================================================
-# Supported File Types
-# =====================================================
-
-@router.get("/supported-types")
-def supported_types():
-
-    return {
-        "status": "success",
-
-        "images": [
-            "jpg",
-            "jpeg",
-            "png",
-            "webp"
-        ],
-
-        "documents": [
-            "pdf"
-        ],
-
-        "audio": [
-            "mp3",
-            "wav",
-            "ogg",
-            "webm",
-            "m4a"
-        ]
-    }
-
-
-# =====================================================
-# Health Check
-# =====================================================
-
-@router.get("/status")
-def file_status():
-
-    return {
-        "status": "success",
-        "message": "Upload API Working",
-        "services": {
-            "pdf_chat": True,
-            "image_chat": True,
-            "speech_to_text": True,
-            "text_to_speech": True
-        }
+        "storage_path": storage_path,
     }

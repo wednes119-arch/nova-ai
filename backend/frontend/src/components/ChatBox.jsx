@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -10,21 +11,25 @@ import {
   FiX,
   FiCheck,
   FiSquare,
+  FiPaperclip,
+  FiImage,
+  FiMic,
+  FiHeadphones,
+  FiSend,
 } from "react-icons/fi";
 
 import api from "../api/api";
-
 import toast from "react-hot-toast";
 
 import Message from "./Message";
-
 import TypingIndicator from "./TypingIndicator";
-
 import VoiceModal from "./VoiceModal";
 
 import "../styles/chat.css";
 
+
 export default function ChatBox({ chat, loading }) {
+
   // =====================================================
   // CHAT STATE
   // =====================================================
@@ -33,59 +38,421 @@ export default function ChatBox({ chat, loading }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
-  // =====================================================
-  // WELCOME
-  // =====================================================
-
-  const [showWelcome, setShowWelcome] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 2200);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   // =====================================================
-  // HISTORY
+// WELCOME
+// =====================================================
+
+const [showWelcome, setShowWelcome] = useState(true);
+
+
+// =====================================================
+// WELCOME SCREEN TIMER
+// =====================================================
+
+useEffect(() => {
+
+  // Keep the welcome screen visible until
+  // the complete voice message finishes.
+  const timer = setTimeout(() => {
+
+    setShowWelcome(false);
+
+  }, 6500);
+
+  return () => {
+
+    clearTimeout(timer);
+
+  };
+
+}, []);
+
+
+// =====================================================
+// WELCOME VOICE
+// =====================================================
+
+useEffect(() => {
+
+  if (!showWelcome) return;
+
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+
+  let cancelled = false;
+  let speechStarted = false;
+  let fallbackTimer = null;
+
+
+  // ===================================================
+  // FIND BEST FEMALE VOICE
+  // ===================================================
+
+  const getBestFemaleVoice = () => {
+
+    const voices =
+      window.speechSynthesis.getVoices();
+
+    if (!voices.length) {
+      return null;
+    }
+
+
+    // Exact / highly preferred voices
+    const preferredNames = [
+
+      "Samantha",
+      "Karen",
+      "Victoria",
+      "Ava",
+      "Jenny",
+      "Aria",
+      "Zira",
+      "Susan",
+      "Google US English",
+      "Microsoft Jenny",
+      "Microsoft Aria",
+      "Microsoft Zira",
+
+    ];
+
+
+    // First try preferred voices
+    for (
+      const preferredName of preferredNames
+    ) {
+
+      const match =
+        voices.find((voice) =>
+
+          voice.name
+            .toLowerCase()
+            .includes(
+              preferredName.toLowerCase()
+            )
+
+        );
+
+      if (match) {
+        return match;
+      }
+
+    }
+
+
+    // Female-sounding fallback
+    const femaleVoice =
+      voices.find((voice) =>
+
+        /female|samantha|karen|victoria|ava|jenny|aria|zira|susan/i
+          .test(
+            voice.name
+          )
+
+      );
+
+
+    if (femaleVoice) {
+      return femaleVoice;
+    }
+
+
+    // English voice fallback
+    const englishVoice =
+      voices.find((voice) =>
+
+        /^en(-|_)/i.test(
+          voice.lang
+        )
+
+      );
+
+
+    return englishVoice || voices[0];
+
+  };
+
+
+  // ===================================================
+  // SPEAK
+  // ===================================================
+
+  const speakWelcome = () => {
+
+    if (
+      cancelled ||
+      speechStarted
+    ) {
+
+      return;
+
+    }
+
+
+    const voices =
+      window.speechSynthesis.getVoices();
+
+
+    if (!voices.length) {
+
+      return;
+
+    }
+
+
+    speechStarted = true;
+
+
+    // Stop anything already speaking
+    window.speechSynthesis.cancel();
+
+
+    // =================================================
+    // WELCOME MESSAGE
+    // =================================================
+
+    const text =
+      "Welcome back. Nova AI is ready for you. Made by Syed Ali Ahsan.";
+
+
+    const utterance =
+      new SpeechSynthesisUtterance(
+        text
+      );
+
+
+    // =================================================
+    // PREMIUM FEMALE-STYLE SETTINGS
+    // =================================================
+
+    // Slightly slower and smoother
+    utterance.rate = 0.72;
+
+    // Softer female-style pitch
+    utterance.pitch = 1.15;
+
+    // Full volume
+    utterance.volume = 1;
+
+
+    // =================================================
+    // SELECT VOICE
+    // =================================================
+
+    const selectedVoice =
+      getBestFemaleVoice();
+
+
+    if (selectedVoice) {
+
+      utterance.voice =
+        selectedVoice;
+
+      console.log(
+        "Nova welcome voice:",
+        selectedVoice.name,
+        selectedVoice.lang
+      );
+
+    }
+
+
+    // =================================================
+    // EVENTS
+    // =================================================
+
+    utterance.onstart = () => {
+
+      console.log(
+        "Nova welcome voice started"
+      );
+
+    };
+
+
+    utterance.onend = () => {
+
+      console.log(
+        "Nova welcome voice completed"
+      );
+
+    };
+
+
+    utterance.onerror = (event) => {
+
+      console.log(
+        "Nova welcome voice error:",
+        event
+      );
+
+    };
+
+
+    // =================================================
+    // SPEAK
+    // =================================================
+
+    if (!cancelled) {
+
+      window.speechSynthesis.speak(
+        utterance
+      );
+
+    }
+
+  };
+
+
+  // ===================================================
+  // VOICES CHANGED
+  // ===================================================
+
+  const handleVoicesChanged = () => {
+
+    if (cancelled) return;
+
+
+    // Wait a little so the browser fully loads voices
+    setTimeout(() => {
+
+      if (!cancelled) {
+
+        speakWelcome();
+
+      }
+
+    }, 250);
+
+  };
+
+
+  window.speechSynthesis.addEventListener(
+    "voiceschanged",
+    handleVoicesChanged
+  );
+
+
+  // ===================================================
+  // INITIAL ATTEMPT
+  // ===================================================
+
+  fallbackTimer = setTimeout(() => {
+
+    if (!cancelled) {
+
+      speakWelcome();
+
+    }
+
+  }, 700);
+
+
+  // ===================================================
+  // CLEANUP
+  // ===================================================
+
+  return () => {
+
+    cancelled = true;
+
+    speechStarted = false;
+
+
+    if (fallbackTimer) {
+
+      clearTimeout(
+        fallbackTimer
+      );
+
+    }
+
+
+    window.speechSynthesis.removeEventListener(
+      "voiceschanged",
+      handleVoicesChanged
+    );
+
+
+    window.speechSynthesis.cancel();
+
+  };
+
+}, [showWelcome]);
+
+
+  // =====================================================
+  // CHAT HISTORY
   // =====================================================
 
   const [chatHistoryEnabled, setChatHistoryEnabled] =
     useState(() => {
-      const saved = localStorage.getItem(
-        "nova_chat_history_enabled"
-      );
 
-      return saved === null ? true : saved === "true";
+      try {
+
+        const saved =
+          localStorage.getItem(
+            "nova_chat_history_enabled"
+          );
+
+        return saved === null
+          ? true
+          : saved === "true";
+
+      } catch {
+
+        return true;
+
+      }
+
     });
 
+
   useEffect(() => {
+
     const handleHistoryChange = (event) => {
-      const enabled = event.detail?.enabled ?? true;
+
+      const enabled =
+        event.detail?.enabled ?? true;
+
       setChatHistoryEnabled(enabled);
+
     };
+
 
     window.addEventListener(
       "nova-chat-history-changed",
       handleHistoryChange
     );
 
+
     return () => {
+
       window.removeEventListener(
         "nova-chat-history-changed",
         handleHistoryChange
       );
+
     };
+
   }, []);
+
 
   // =====================================================
   // FILE STATE
   // =====================================================
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadedFileId, setUploadedFileId] = useState(null);
-  const [uploadedFileType, setUploadedFileType] = useState(null);
+  const [selectedFile, setSelectedFile] =
+    useState(null);
+
+  const [uploadedFileId, setUploadedFileId] =
+    useState(null);
+
+  const [uploadedFileType, setUploadedFileType] =
+    useState(null);
+
 
   // =====================================================
   // IMAGE GENERATION
@@ -97,723 +464,1411 @@ export default function ChatBox({ chat, loading }) {
   const [generatingImage, setGeneratingImage] =
     useState(false);
 
+
   // =====================================================
   // VOICE STATE
   // =====================================================
 
-  const [recording, setRecording] = useState(false);
-  const [voiceMode, setVoiceMode] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [recording, setRecording] =
+    useState(false);
 
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [voiceMode, setVoiceMode] =
+    useState(false);
 
-  const [voiceLevel, setVoiceLevel] = useState(0);
-  const [voiceData, setVoiceData] = useState([]);
+  const [isListening, setIsListening] =
+    useState(false);
+
+  const [isThinking, setIsThinking] =
+    useState(false);
+
+  const [isSpeaking, setIsSpeaking] =
+    useState(false);
+
+  const [showVoiceModal, setShowVoiceModal] =
+    useState(false);
+
+  const [voiceLevel, setVoiceLevel] =
+    useState(0);
+
+  const [voiceData, setVoiceData] =
+    useState([]);
+
 
   // =====================================================
   // REFS
   // =====================================================
 
   const bottomRef = useRef(null);
+
   const fileInputRef = useRef(null);
 
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
+  const mediaRecorderRef =
+    useRef(null);
 
-  const audioRef = useRef(null);
+  const chunksRef =
+    useRef([]);
 
-  const silenceTimer = useRef(null);
+  const audioRef =
+    useRef(null);
 
-  const messagesContainerRef = useRef(null);
+  const silenceTimer =
+    useRef(null);
 
-  const analyserRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const animationRef = useRef(null);
+  const messagesContainerRef =
+    useRef(null);
+
+  const analyserRef =
+    useRef(null);
+
+  const audioContextRef =
+    useRef(null);
+
+  const animationRef =
+    useRef(null);
+
 
   // =====================================================
   // SCROLL
   // =====================================================
 
-  const scrollToBottom = (smooth = false) => {
-    const container = messagesContainerRef.current;
+  const scrollToBottom = (
+    smooth = false
+  ) => {
+
+    const container =
+      messagesContainerRef.current;
 
     if (!container) return;
 
     container.scrollTo({
+
       top: container.scrollHeight,
-      behavior: smooth ? "smooth" : "auto",
+
+      behavior:
+        smooth
+          ? "smooth"
+          : "auto",
+
     });
+
   };
 
+
   useEffect(() => {
+
     if (!messages.length) return;
 
     requestAnimationFrame(() => {
       scrollToBottom(false);
     });
+
   }, [messages]);
+
 
   // =====================================================
   // LOAD CHAT
   // =====================================================
 
   useEffect(() => {
+
     if (!chat) {
+
       setMessages([]);
-      setSelectedFile(null);
-      setUploadedFileId(null);
-      setUploadedFileType(null);
+
+      clearSelectedFile();
+
+      setImageGenerationMode(false);
+
       return;
+
     }
 
     loadMessages(chat.id);
+
   }, [chat]);
+
 
   // =====================================================
   // VOICE MODE
   // =====================================================
 
   useEffect(() => {
+
     if (!voiceMode) return;
 
-    if (!recording && !isSpeaking && !isThinking) {
+    if (
+      !recording &&
+      !isSpeaking &&
+      !isThinking
+    ) {
+
       startRecording();
+
     }
+
   }, [voiceMode]);
+
 
   // =====================================================
   // CLEANUP
   // =====================================================
 
   useEffect(() => {
-    return () => {
-      clearTimeout(silenceTimer.current);
 
-      cancelAnimationFrame(animationRef.current);
+    return () => {
+
+      clearTimeout(
+        silenceTimer.current
+      );
+
+      cancelAnimationFrame(
+        animationRef.current
+      );
+
 
       if (audioContextRef.current) {
-        audioContextRef.current.close().catch(() => {});
+
+        audioContextRef.current
+          .close()
+          .catch(() => {});
+
       }
+
 
       if (audioRef.current) {
+
         audioRef.current.pause();
+
         audioRef.current.src = "";
+
       }
 
-      if (mediaRecorderRef.current?.stream) {
+
+      if (
+        mediaRecorderRef.current?.stream
+      ) {
+
         mediaRecorderRef.current.stream
           .getTracks()
-          .forEach((track) => track.stop());
+          .forEach((track) => {
+            track.stop();
+          });
+
       }
 
-      // Revoke generated image URLs
+
       messages.forEach((message) => {
+
         if (message?.imageUrl) {
-          URL.revokeObjectURL(message.imageUrl);
+
+          try {
+            URL.revokeObjectURL(
+              message.imageUrl
+            );
+          } catch {}
+
         }
+
       });
+
     };
+
   }, []);
+
 
   // =====================================================
   // LOAD HISTORY
   // =====================================================
 
   async function loadMessages(chatId) {
-    try {
-      const res = await api.get(`/chat/history/${chatId}`);
 
-      setMessages(res.data.messages || []);
+    try {
+
+      const res = await api.get(
+        `/chat/history/${chatId}`
+      );
+
+      setMessages(
+        res.data.messages || []
+      );
+
 
       requestAnimationFrame(() => {
         scrollToBottom(false);
       });
+
     } catch (err) {
-      console.log("Load messages error:", err);
-      toast.error("Failed to load conversation");
+
+      console.log(
+        "Load messages error:",
+        err
+      );
+
+      toast.error(
+        err.response?.data?.detail ||
+        "Failed to load conversation"
+      );
+
     }
+
   }
+
 
   // =====================================================
   // FILE UPLOAD
   // =====================================================
 
   async function uploadFile(file) {
+
     if (!file) return;
 
+
     const allowedTypes = [
+
       "application/pdf",
+
       "image/jpeg",
+
       "image/png",
+
       "image/webp",
+
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+
       toast.error(
         "Only PDF, JPG, JPEG, PNG and WEBP files are supported."
       );
+
       return;
+
     }
 
-    const maxSize = 20 * 1024 * 1024;
+
+    const maxSize =
+      20 * 1024 * 1024;
+
 
     if (file.size > maxSize) {
-      toast.error("File must be smaller than 20MB");
+
+      toast.error(
+        "File must be smaller than 20MB"
+      );
+
       return;
+
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "file",
+      file
+    );
+
 
     try {
+
       setIsThinking(true);
+
 
       const res = await api.post(
         "/files/upload",
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type":
+              "multipart/form-data",
           },
         }
       );
 
+
       setSelectedFile(file);
-      setUploadedFileId(res.data.file_id);
-      setUploadedFileType(res.data.file_category);
 
-      if (res.data.file_category === "image") {
-        toast.success("Image uploaded successfully");
-      } else {
-        toast.success("PDF uploaded successfully");
-      }
-    } catch (err) {
-      console.log("File upload error:", err);
-
-      toast.error(
-        err.response?.data?.detail ||
-          err.response?.data?.message ||
-          "File upload failed"
+      setUploadedFileId(
+        res.data.file_id
       );
 
-      setSelectedFile(null);
-      setUploadedFileId(null);
-      setUploadedFileType(null);
+      setUploadedFileType(
+        res.data.file_category
+      );
+
+
+      if (
+        res.data.file_category ===
+        "image"
+      ) {
+
+        toast.success(
+          "Image uploaded successfully"
+        );
+
+      } else {
+
+        toast.success(
+          "PDF uploaded successfully"
+        );
+
+      }
+
+    } catch (err) {
+
+      console.log(
+        "File upload error:",
+        err
+      );
+
+
+      toast.error(
+
+        err.response?.data?.detail ||
+
+        err.response?.data?.message ||
+
+        "File upload failed"
+
+      );
+
+
+      clearSelectedFile();
+
     } finally {
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // ASK IMAGE
   // =====================================================
 
-  async function askUploadedImage(question) {
+  async function askUploadedImage(
+    question
+  ) {
+
     if (!uploadedFileId) {
-      toast.error("Please upload an image first.");
+
+      toast.error(
+        "Please upload an image first."
+      );
+
       return null;
+
     }
+
 
     const res = await api.post(
       "/files/ask-image",
       {
-        file_id: uploadedFileId,
+        file_id:
+          uploadedFileId,
+
         question,
       }
     );
 
-    return res.data.answer || "";
+
+    return (
+      res.data.answer || ""
+    );
+
   }
+
 
   // =====================================================
   // GENERATE IMAGE
   // =====================================================
 
-  async function generateAIImage(prompt) {
-    const cleanPrompt = prompt?.trim();
+  async function generateAIImage(
+    prompt
+  ) {
+
+    const cleanPrompt =
+      prompt?.trim();
+
 
     if (!cleanPrompt) {
-      toast.error("Please enter an image prompt.");
+
+      toast.error(
+        "Please enter an image prompt."
+      );
+
       return;
+
     }
+
 
     if (!chat) {
-      toast.error("Please create a conversation first.");
+
+      toast.error(
+        "Please create a conversation first."
+      );
+
       return;
+
     }
 
-    if (generatingImage || sending) return;
+
+    if (
+      generatingImage ||
+      sending
+    ) {
+
+      return;
+
+    }
+
 
     try {
+
       setGeneratingImage(true);
+
       setSending(true);
+
       setIsThinking(true);
 
-      // User prompt
+
+      // USER MESSAGE
+
       setMessages((prev) => [
+
         ...prev,
+
         {
           role: "user",
           content: cleanPrompt,
         },
+
       ]);
+
 
       setText("");
 
+
       requestAnimationFrame(() => {
+
         scrollToBottom(true);
+
       });
 
+
+      // API REQUEST
+
       const res = await api.post(
+
         "/files/generate-image",
+
         {
           prompt: cleanPrompt,
         },
+
         {
           responseType: "blob",
         }
+
       );
 
-      if (!res.data || !res.data.size) {
-        throw new Error("No image was returned by the server.");
+
+      if (
+        !res.data ||
+        !res.data.size
+      ) {
+
+        throw new Error(
+          "No image was returned by the server."
+        );
+
       }
 
-      const imageUrl = URL.createObjectURL(res.data);
+
+      const imageUrl =
+        URL.createObjectURL(
+          res.data
+        );
+
+
+      // ASSISTANT IMAGE
 
       setMessages((prev) => [
+
         ...prev,
+
         {
           role: "assistant",
           content: "",
           imageUrl,
           isGeneratedImage: true,
         },
+
       ]);
 
-      toast.success("Image generated successfully!");
+
+      toast.success(
+        "Image generated successfully!"
+      );
+
+
     } catch (err) {
-      console.log("Image generation error:", err);
 
-      let message = "Image generation failed.";
+      console.log(
+        "Image generation error:",
+        err
+      );
 
-      if (err.response?.data instanceof Blob) {
+
+      let message =
+        "Image generation failed.";
+
+
+      if (
+        err.response?.data
+          instanceof Blob
+      ) {
+
         try {
-          const errorText =
-            await err.response.data.text();
 
-          const parsed = JSON.parse(errorText);
+          const errorText =
+            await err.response
+              .data
+              .text();
+
+
+          const parsed =
+            JSON.parse(
+              errorText
+            );
+
 
           message =
             parsed.detail ||
             parsed.message ||
             message;
+
         } catch {
-          // Keep default message
+
+          // Keep default
+
         }
+
       } else {
+
         message =
-          err.response?.data?.detail ||
-          err.response?.data?.message ||
+          err.response?.data
+            ?.detail ||
+
+          err.response?.data
+            ?.message ||
+
           err.message ||
+
           message;
+
       }
+
 
       toast.error(message);
 
+
       setMessages((prev) => [
+
         ...prev,
+
         {
           role: "assistant",
+
           content:
             "Sorry, I couldn't generate that image. Please try again.",
+
         },
+
       ]);
+
     } finally {
+
       setGeneratingImage(false);
+
       setSending(false);
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // SILENCE TIMER
   // =====================================================
 
   function resetSilenceTimer() {
-    clearTimeout(silenceTimer.current);
 
-    silenceTimer.current = setTimeout(() => {
-      if (recording) {
-        stopRecording();
-      }
-    }, 6000);
+    clearTimeout(
+      silenceTimer.current
+    );
+
+
+    silenceTimer.current =
+      setTimeout(() => {
+
+        if (recording) {
+
+          stopRecording();
+
+        }
+
+      }, 6000);
+
   }
 
+
   // =====================================================
-  // MIC
+  // MICROPHONE
   // =====================================================
 
   const handleMic = async () => {
+
     try {
+
       if (recording) {
+
         stopRecording();
+
       } else {
+
         await startRecording();
+
       }
+
     } catch (err) {
-      console.log("Microphone error:", err);
-      toast.error("Microphone access failed");
+
+      console.log(
+        "Microphone error:",
+        err
+      );
+
+      toast.error(
+        "Microphone access failed"
+      );
+
     }
+
   };
+
 
   // =====================================================
   // START RECORDING
   // =====================================================
 
   async function startRecording() {
+
     if (recording) return;
 
+
     if (isSpeaking) {
+
       stopSpeaking();
+
     }
+
 
     if (
       !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
+      !navigator.mediaDevices
+        .getUserMedia
     ) {
-      toast.error("Microphone is not supported");
-      return;
-    }
 
-    try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-
-      audioContextRef.current =
-        new AudioContext();
-
-      const source =
-        audioContextRef.current.createMediaStreamSource(
-          stream
-        );
-
-      analyserRef.current =
-        audioContextRef.current.createAnalyser();
-
-      analyserRef.current.fftSize = 256;
-
-      source.connect(analyserRef.current);
-
-      const dataArray = new Uint8Array(
-        analyserRef.current.frequencyBinCount
+      toast.error(
+        "Microphone is not supported"
       );
 
-      function detectVoice() {
-        if (!analyserRef.current) return;
+      return;
 
-        analyserRef.current.getByteFrequencyData(
-          dataArray
+    }
+
+
+    try {
+
+      const stream =
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio: true,
+          });
+
+
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+
+      if (!AudioContextClass) {
+
+        stream
+          .getTracks()
+          .forEach((track) => {
+            track.stop();
+          });
+
+        toast.error(
+          "Audio is not supported on this device."
         );
+
+        return;
+
+      }
+
+
+      audioContextRef.current =
+        new AudioContextClass();
+
+
+      const source =
+        audioContextRef.current
+          .createMediaStreamSource(
+            stream
+          );
+
+
+      analyserRef.current =
+        audioContextRef.current
+          .createAnalyser();
+
+
+      analyserRef.current.fftSize =
+        256;
+
+
+      source.connect(
+        analyserRef.current
+      );
+
+
+      const dataArray =
+        new Uint8Array(
+          analyserRef.current
+            .frequencyBinCount
+        );
+
+
+      function detectVoice() {
+
+        if (
+          !analyserRef.current
+        ) return;
+
+
+        analyserRef.current
+          .getByteFrequencyData(
+            dataArray
+          );
+
 
         let sum = 0;
 
-        for (let i = 0; i < dataArray.length; i++) {
+
+        for (
+          let i = 0;
+          i < dataArray.length;
+          i++
+        ) {
+
           sum += dataArray[i];
+
         }
 
+
         const average =
-          sum / dataArray.length;
+          dataArray.length
+            ? sum /
+              dataArray.length
+            : 0;
 
-        setVoiceLevel(average);
 
-        setVoiceData(
-          Array.from(dataArray).slice(0, 32)
+        setVoiceLevel(
+          average
         );
 
+
+        setVoiceData(
+          Array.from(
+            dataArray
+          ).slice(0, 32)
+        );
+
+
         animationRef.current =
-          requestAnimationFrame(detectVoice);
+          requestAnimationFrame(
+            detectVoice
+          );
+
       }
+
 
       detectVoice();
 
-      const recorder = new MediaRecorder(stream);
 
-      mediaRecorderRef.current = recorder;
+      // =================================================
+      // MEDIA RECORDER
+      // =================================================
+
+      let recorder;
+
+
+      try {
+
+        recorder =
+          new MediaRecorder(
+            stream,
+            {
+              mimeType:
+                "audio/webm",
+            }
+          );
+
+      } catch {
+
+        recorder =
+          new MediaRecorder(
+            stream
+          );
+
+      }
+
+
+      mediaRecorderRef.current =
+        recorder;
+
+
       chunksRef.current = [];
 
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
 
-        resetSilenceTimer();
-      };
+      recorder.ondataavailable =
+        (event) => {
+
+          if (
+            event.data &&
+            event.data.size > 0
+          ) {
+
+            chunksRef.current.push(
+              event.data
+            );
+
+          }
+
+          resetSilenceTimer();
+
+        };
+
 
       recorder.onstart = () => {
+
         setRecording(true);
+
         setIsListening(true);
 
         resetSilenceTimer();
+
       };
 
-      recorder.onstop = async () => {
-        cancelAnimationFrame(animationRef.current);
 
-        setVoiceLevel(0);
-        setVoiceData([]);
+      recorder.onstop =
+        async () => {
 
-        clearTimeout(silenceTimer.current);
-
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
-
-        if (audioContextRef.current) {
-          await audioContextRef.current
-            .close()
-            .catch(() => {});
-
-          audioContextRef.current = null;
-        }
-
-        setRecording(false);
-        setIsListening(false);
-
-        const blob = new Blob(
-          chunksRef.current,
-          {
-            type: "audio/webm",
-          }
-        );
-
-        if (!blob.size) {
-          setIsThinking(false);
-          return;
-        }
-
-        const formData = new FormData();
-
-        formData.append(
-          "file",
-          blob,
-          "voice.webm"
-        );
-
-        try {
-          setIsThinking(true);
-
-          const res = await api.post(
-            "/files/speech",
-            formData,
-            {
-              headers: {
-                "Content-Type":
-                  "multipart/form-data",
-              },
-            }
+          cancelAnimationFrame(
+            animationRef.current
           );
 
-          const convertedText =
-            res.data.text || "";
 
-          if (!convertedText.trim()) {
+          setVoiceLevel(0);
+
+          setVoiceData([]);
+
+
+          clearTimeout(
+            silenceTimer.current
+          );
+
+
+          stream
+            .getTracks()
+            .forEach((track) => {
+              track.stop();
+            });
+
+
+          if (
+            audioContextRef.current
+          ) {
+
+            await audioContextRef.current
+              .close()
+              .catch(() => {});
+
+
+            audioContextRef.current =
+              null;
+
+          }
+
+
+          setRecording(false);
+
+          setIsListening(false);
+
+
+          const blob =
+            new Blob(
+              chunksRef.current,
+              {
+                type:
+                  recorder.mimeType ||
+                  "audio/webm",
+              }
+            );
+
+
+          if (!blob.size) {
+
             setIsThinking(false);
-
-            if (voiceMode) {
-              setTimeout(() => {
-                startRecording();
-              }, 200);
-            }
 
             return;
+
           }
 
-          setText(convertedText);
 
-          toast.success("Voice converted!");
+          const formData =
+            new FormData();
 
-          if (voiceMode) {
-            setTimeout(() => {
-              sendMessage(convertedText);
-            }, 150);
-          } else {
-            setIsThinking(false);
-          }
-        } catch (err) {
-          console.log("Speech error:", err);
 
-          setIsThinking(false);
-
-          toast.error(
-            err.response?.data?.detail ||
-              "Speech recognition failed"
+          formData.append(
+            "file",
+            blob,
+            "voice.webm"
           );
-        }
+
+
+          try {
+
+            setIsThinking(true);
+
+
+            const res =
+              await api.post(
+                "/files/speech",
+                formData,
+                {
+                  headers: {
+                    "Content-Type":
+                      "multipart/form-data",
+                  },
+                }
+              );
+
+
+            const convertedText =
+              res.data?.text ||
+              "";
+
+
+            if (
+              !convertedText.trim()
+            ) {
+
+              setIsThinking(false);
+
+
+              if (voiceMode) {
+
+                setTimeout(() => {
+
+                  if (!recording) {
+                    startRecording();
+                  }
+
+                }, 300);
+
+              }
+
+
+              return;
+
+            }
+
+
+            setText(
+              convertedText
+            );
+
+
+            toast.success(
+              "Voice converted!"
+            );
+
+
+            if (voiceMode) {
+
+              setTimeout(() => {
+
+                sendMessage(
+                  convertedText
+                );
+
+              }, 150);
+
+            } else {
+
+              setIsThinking(false);
+
+            }
+
+
+          } catch (err) {
+
+            console.log(
+              "Speech error:",
+              err
+            );
+
+
+            setIsThinking(false);
+
+
+            toast.error(
+
+              err.response
+                ?.data?.detail ||
+
+              err.response
+                ?.data?.message ||
+
+              "Speech recognition failed"
+
+            );
+
+          }
+
+        };
+
+
+      recorder.onerror = () => {
+
+        setRecording(false);
+
+        setIsListening(false);
+
+        setIsThinking(false);
+
+        toast.error(
+          "Recording failed."
+        );
+
       };
 
+
       recorder.start();
+
     } catch (err) {
-      console.log("Recording error:", err);
+
+      console.log(
+        "Recording error:",
+        err
+      );
+
 
       setRecording(false);
+
       setIsListening(false);
+
+      setIsThinking(false);
+
 
       toast.error(
         "Please allow microphone access"
       );
+
     }
+
   }
+
 
   // =====================================================
   // STOP RECORDING
   // =====================================================
 
   function stopRecording() {
+
+    clearTimeout(
+      silenceTimer.current
+    );
+
+
     if (
       mediaRecorderRef.current &&
-      mediaRecorderRef.current.state !==
-        "inactive"
+      mediaRecorderRef.current
+        .state !== "inactive"
     ) {
+
       mediaRecorderRef.current.stop();
+
     }
+
   }
+
 
   // =====================================================
   // TOGGLE RECORDING
   // =====================================================
 
   function toggleRecording() {
+
     if (recording) {
+
       stopRecording();
+
     } else {
+
       startRecording();
+
     }
+
   }
+
 
   // =====================================================
   // REGENERATE
   // =====================================================
 
   async function regenerateMessage() {
-    if (!chat || sending) return;
+
+    if (
+      !chat ||
+      sending
+    ) return;
+
 
     try {
+
       setSending(true);
+
       setIsThinking(true);
 
-      await api.post("/chat/regenerate", {
-        chat_id: chat.id,
-      });
 
-      await loadMessages(chat.id);
+      await api.post(
+        "/chat/regenerate",
+        {
+          chat_id:
+            chat.id,
+        }
+      );
 
-      toast.success("Response regenerated");
+
+      await loadMessages(
+        chat.id
+      );
+
+
+      toast.success(
+        "Response regenerated"
+      );
+
     } catch (err) {
-      console.log("Regenerate error:", err);
+
+      console.log(
+        "Regenerate error:",
+        err
+      );
+
 
       toast.error(
-        err.response?.data?.detail ||
-          err.response?.data?.message ||
-          "Regenerate failed"
+
+        err.response?.data
+          ?.detail ||
+
+        err.response?.data
+          ?.message ||
+
+        "Regenerate failed"
+
       );
+
     } finally {
+
       setSending(false);
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // CONTINUE
   // =====================================================
 
   async function continueResponse() {
-    if (!chat || sending) return;
+
+    if (
+      !chat ||
+      sending
+    ) return;
+
 
     try {
+
       setSending(true);
+
       setIsThinking(true);
 
-      const res = await api.post(
-        "/chat/continue",
-        {
-          chat_id: chat.id,
-        }
-      );
+
+      const res =
+        await api.post(
+          "/chat/continue",
+          {
+            chat_id:
+              chat.id,
+          }
+        );
+
 
       const answer =
-        res.data.assistant || "";
+        res.data?.assistant ||
+        "";
+
 
       setMessages((prev) => {
-        const updated = [...prev];
+
+        const updated =
+          [...prev];
+
 
         for (
-          let i = updated.length - 1;
+          let i =
+            updated.length - 1;
           i >= 0;
           i--
         ) {
+
           if (
-            updated[i].role === "assistant"
+            updated[i].role ===
+            "assistant"
           ) {
+
             updated[i] = {
+
               ...updated[i],
-              content: answer,
+
+              content:
+                answer,
+
             };
 
+
             break;
+
           }
+
         }
 
+
         return updated;
+
       });
+
+
     } catch (err) {
-      console.log(err);
+
+      console.log(
+        "Continue error:",
+        err
+      );
+
 
       toast.error(
-        err.response?.data?.detail ||
-          "Continue failed"
+
+        err.response?.data
+          ?.detail ||
+
+        "Continue failed"
+
       );
+
     } finally {
+
       setSending(false);
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // CLEAR CHAT
   // =====================================================
 
   async function clearConversation() {
+
     if (!chat) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to clear this conversation?"
-    );
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to clear this conversation?"
+      );
+
 
     if (!confirmed) return;
 
+
     try {
+
       await api.delete(
         `/chat/clear/${chat.id}`
       );
 
+
       setMessages([]);
+
 
       toast.success(
         "Conversation cleared"
       );
+
     } catch (err) {
-      console.log(err);
+
+      console.log(
+        "Clear chat error:",
+        err
+      );
+
 
       toast.error(
-        err.response?.data?.detail ||
-          "Failed to clear conversation"
+
+        err.response?.data
+          ?.detail ||
+
+        "Failed to clear conversation"
+
       );
+
     }
+
   }
+
 
   // =====================================================
   // EDIT MESSAGE
@@ -823,129 +1878,226 @@ export default function ChatBox({ chat, loading }) {
     messageId,
     newText
   ) {
+
     if (
-      !newText.trim() ||
+      !newText?.trim() ||
       sending ||
       !chat
     ) {
+
       return;
+
     }
+
 
     try {
+
       setSending(true);
+
       setIsThinking(true);
 
+
       await api.put(
+
         `/chat/edit-message/${messageId}`,
+
         {
-          chat_id: chat.id,
-          message: newText,
+          chat_id:
+            chat.id,
+
+          message:
+            newText.trim(),
+
         }
+
       );
 
-      await loadMessages(chat.id);
 
-      toast.success("Message updated");
+      await loadMessages(
+        chat.id
+      );
+
+
+      toast.success(
+        "Message updated"
+      );
+
     } catch (err) {
-      console.log(err);
+
+      console.log(
+        "Edit error:",
+        err
+      );
+
 
       toast.error(
-        err.response?.data?.detail ||
-          err.response?.data?.message ||
-          "Edit failed"
+
+        err.response?.data
+          ?.detail ||
+
+        err.response?.data
+          ?.message ||
+
+        "Edit failed"
+
       );
+
     } finally {
+
       setSending(false);
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // SEND MESSAGE
   // =====================================================
 
-  async function sendMessage(customText = null) {
+  async function sendMessage(
+    customText = null
+  ) {
+
     const message =
       customText !== null
         ? customText
         : text;
+
 
     if (
       !message?.trim() ||
       !chat ||
       sending
     ) {
+
       return;
+
     }
 
-    const cleanMessage = message.trim();
+
+    const cleanMessage =
+      message.trim();
+
 
     // ===================================================
-    // IMAGE GENERATION MODE
+    // IMAGE GENERATION
     // ===================================================
 
-    if (imageGenerationMode) {
-      await generateAIImage(cleanMessage);
+    if (
+      imageGenerationMode
+    ) {
+
+      await generateAIImage(
+        cleanMessage
+      );
+
       return;
+
     }
+
 
     setText("");
+
     setSending(true);
+
     setIsThinking(true);
 
+
+    // Add user + assistant placeholder
+
     setMessages((prev) => [
+
       ...prev,
+
       {
         role: "user",
         content: cleanMessage,
       },
+
       {
         role: "assistant",
         content: "",
       },
+
     ]);
 
+
     requestAnimationFrame(() => {
+
       scrollToBottom(true);
+
     });
 
+
     try {
+
       // =================================================
       // IMAGE CHAT
       // =================================================
 
       if (
         uploadedFileId &&
-        uploadedFileType === "image"
+        uploadedFileType ===
+          "image"
       ) {
+
         const answer =
           await askUploadedImage(
             cleanMessage
           );
 
+
         setIsThinking(false);
 
-        setMessages((prev) => {
-          const updated = [...prev];
 
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: answer,
+        setMessages((prev) => {
+
+          const updated =
+            [...prev];
+
+
+          updated[
+            updated.length - 1
+          ] = {
+
+            role:
+              "assistant",
+
+            content:
+              answer,
+
           };
 
+
           return updated;
+
         });
+
 
         clearSelectedFile();
 
-        if (voiceMode) {
-          await speakAnswer(answer);
+
+        if (
+          voiceMode &&
+          answer
+        ) {
+
+          await speakAnswer(
+            answer
+          );
+
         }
+
 
         setSending(false);
 
         return;
+
       }
+
 
       // =================================================
       // PDF CHAT
@@ -953,333 +2105,650 @@ export default function ChatBox({ chat, loading }) {
 
       if (
         uploadedFileId &&
-        uploadedFileType === "pdf"
+        uploadedFileType ===
+          "pdf"
       ) {
-        const res = await api.post(
-          "/files/chat-pdf",
-          {
-            file_id: uploadedFileId,
-            question: cleanMessage,
-          }
-        );
+
+        const res =
+          await api.post(
+
+            "/files/chat-pdf",
+
+            {
+              file_id:
+                uploadedFileId,
+
+              question:
+                cleanMessage,
+            }
+
+          );
+
 
         const answer =
-          res.data.answer || "";
+          res.data?.answer ||
+          "";
+
 
         setIsThinking(false);
 
+
         setMessages((prev) => {
-          const updated = [...prev];
+
+          const updated =
+            [...prev];
+
 
           updated[
             updated.length - 1
           ] = {
-            role: "assistant",
-            content: answer,
+
+            role:
+              "assistant",
+
+            content:
+              answer,
+
           };
 
+
           return updated;
+
         });
+
 
         clearSelectedFile();
 
-        if (voiceMode) {
-          await speakAnswer(answer);
+
+        if (
+          voiceMode &&
+          answer
+        ) {
+
+          await speakAnswer(
+            answer
+          );
+
         }
+
 
         setSending(false);
 
         return;
+
       }
+
 
       // =================================================
       // NORMAL STREAMING CHAT
       // =================================================
 
       const token =
-        localStorage.getItem("token");
-
-      const response = await fetch(
-        "https://nova-ai-five-orpin.vercel.app/api/chat/stream",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            chat_id: chat.id,
-            message: cleanMessage,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "Streaming failed"
+        localStorage.getItem(
+          "token"
         );
+
+
+      if (!token) {
+
+        throw new Error(
+          "Authentication token not found."
+        );
+
       }
 
+
+      const response =
+        await fetch(
+
+          "https://nova-ai-five-orpin.vercel.app/api/chat/stream",
+
+          {
+
+            method:
+              "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+
+            },
+
+            body:
+              JSON.stringify({
+
+                chat_id:
+                  chat.id,
+
+                message:
+                  cleanMessage,
+
+              }),
+
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        let errorMessage =
+          "Streaming failed";
+
+
+        try {
+
+          const errorData =
+            await response.json();
+
+
+          errorMessage =
+            errorData?.detail ||
+            errorData?.message ||
+            errorMessage;
+
+        } catch {
+
+          // ignore
+
+        }
+
+
+        throw new Error(
+          errorMessage
+        );
+
+      }
+
+
       if (!response.body) {
+
         throw new Error(
           "Streaming response unavailable"
         );
+
       }
+
 
       const reader =
         response.body.getReader();
 
+
       const decoder =
         new TextDecoder();
 
+
       let aiAnswer = "";
 
+
       while (true) {
-        const { done, value } =
+
+        const {
+          done,
+          value,
+        } =
           await reader.read();
+
 
         if (done) break;
 
+
         const chunk =
-          decoder.decode(value, {
-            stream: true,
-          });
+          decoder.decode(
+            value,
+            {
+              stream: true,
+            }
+          );
+
 
         if (!chunk) continue;
 
+
         setIsThinking(false);
+
 
         aiAnswer += chunk;
 
-        setMessages((prev) => {
-          const updated = [...prev];
 
-          updated[
-            updated.length - 1
-          ] = {
-            ...updated[
-              updated.length - 1
-            ],
-            content: aiAnswer,
-          };
+        setMessages((prev) => {
+
+          const updated =
+            [...prev];
+
+
+          const lastIndex =
+            updated.length - 1;
+
+
+          if (
+            lastIndex >= 0 &&
+            updated[lastIndex]
+              .role ===
+              "assistant"
+          ) {
+
+            updated[
+              lastIndex
+            ] = {
+
+              ...updated[
+                lastIndex
+              ],
+
+              content:
+                aiAnswer,
+
+            };
+
+          }
+
 
           return updated;
+
         });
 
-        requestAnimationFrame(() => {
-          scrollToBottom(false);
-        });
+
+        requestAnimationFrame(
+          () => {
+            scrollToBottom(false);
+          }
+        );
+
       }
+
 
       setIsThinking(false);
 
-      if (voiceMode && aiAnswer) {
-        await speakAnswer(aiAnswer);
+
+      if (
+        voiceMode &&
+        aiAnswer
+      ) {
+
+        await speakAnswer(
+          aiAnswer
+        );
+
       }
+
+
     } catch (err) {
+
       console.log(
         "Send message error:",
         err
       );
 
+
       setMessages((prev) => {
-        const updated = [...prev];
+
+        const updated =
+          [...prev];
+
+
+        const lastIndex =
+          updated.length - 1;
+
 
         if (
-          updated.length &&
-          updated[
-            updated.length - 1
-          ].role === "assistant"
+          lastIndex >= 0 &&
+          updated[lastIndex]
+            .role ===
+            "assistant"
         ) {
+
           updated[
-            updated.length - 1
+            lastIndex
           ] = {
+
             ...updated[
-              updated.length - 1
+              lastIndex
             ],
+
             content:
               "Sorry, something went wrong. Please try again.",
+
           };
+
         }
 
+
         return updated;
+
       });
 
+
       toast.error(
-        err.response?.data?.detail ||
-          err.message ||
-          "Message failed"
+
+        err.response?.data
+          ?.detail ||
+
+        err.response?.data
+          ?.message ||
+
+        err.message ||
+
+        "Message failed"
+
       );
+
     } finally {
+
       setSending(false);
+
       setIsThinking(false);
+
     }
+
   }
+
 
   // =====================================================
   // CLEAR SELECTED FILE
   // =====================================================
 
   function clearSelectedFile() {
+
     setSelectedFile(null);
+
     setUploadedFileId(null);
+
     setUploadedFileType(null);
+
   }
+
 
   // =====================================================
   // TEXT TO SPEECH
   // =====================================================
 
-  async function speakAnswer(answer) {
+  async function speakAnswer(
+    answer
+  ) {
+
     if (!answer) return;
 
+
     try {
+
       setIsSpeaking(true);
 
-      const res = await api.post(
-        "/files/tts",
-        {
-          text: answer,
-        },
-        {
-          responseType: "blob",
+
+      const res =
+        await api.post(
+
+          "/files/tts",
+
+          {
+            text:
+              answer,
+          },
+
+          {
+            responseType:
+              "blob",
+          }
+
+        );
+
+
+      if (
+        !res.data ||
+        !res.data.size
+      ) {
+
+        throw new Error(
+          "No audio returned."
+        );
+
+      }
+
+
+      const audioURL =
+        URL.createObjectURL(
+          res.data
+        );
+
+
+      const player =
+        new Audio(
+          audioURL
+        );
+
+
+      audioRef.current =
+        player;
+
+
+      return new Promise(
+        (resolve) => {
+
+
+          player.onended =
+            () => {
+
+              setIsSpeaking(
+                false
+              );
+
+
+              URL.revokeObjectURL(
+                audioURL
+              );
+
+
+              audioRef.current =
+                null;
+
+
+              if (voiceMode) {
+
+                setTimeout(
+                  () => {
+
+                    if (
+                      !recording &&
+                      !isSpeaking
+                    ) {
+
+                      startRecording();
+
+                    }
+
+                  },
+                  250
+                );
+
+              }
+
+
+              resolve();
+
+            };
+
+
+          player.onerror =
+            () => {
+
+              setIsSpeaking(
+                false
+              );
+
+
+              URL.revokeObjectURL(
+                audioURL
+              );
+
+
+              audioRef.current =
+                null;
+
+
+              resolve();
+
+            };
+
+
+          player.play()
+            .catch(() => {
+
+              setIsSpeaking(
+                false
+              );
+
+
+              URL.revokeObjectURL(
+                audioURL
+              );
+
+
+              audioRef.current =
+                null;
+
+
+              resolve();
+
+            });
+
         }
       );
 
-      const audioURL =
-        URL.createObjectURL(res.data);
 
-      const player = new Audio(
-        audioURL
-      );
-
-      audioRef.current = player;
-
-      return new Promise((resolve) => {
-        player.onended = () => {
-          setIsSpeaking(false);
-
-          URL.revokeObjectURL(
-            audioURL
-          );
-
-          audioRef.current = null;
-
-          if (voiceMode) {
-            setTimeout(() => {
-              startRecording();
-            }, 250);
-          }
-
-          resolve();
-        };
-
-        player.onerror = () => {
-          setIsSpeaking(false);
-
-          URL.revokeObjectURL(
-            audioURL
-          );
-
-          audioRef.current = null;
-
-          resolve();
-        };
-
-        player.play().catch(() => {
-          setIsSpeaking(false);
-
-          URL.revokeObjectURL(
-            audioURL
-          );
-
-          audioRef.current = null;
-
-          resolve();
-        });
-      });
     } catch (err) {
+
       console.log(
         "TTS error:",
         err
       );
 
       setIsSpeaking(false);
+
     }
+
   }
+
 
   // =====================================================
   // STOP SPEAKING
   // =====================================================
 
   function stopSpeaking() {
-    if (!audioRef.current) return;
 
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    audioRef.current.src = "";
+    if (!audioRef.current) {
 
-    audioRef.current = null;
+      setIsSpeaking(false);
+
+      return;
+
+    }
+
+
+    try {
+
+      audioRef.current.pause();
+
+      audioRef.current.currentTime =
+        0;
+
+      audioRef.current.src = "";
+
+    } catch {}
+
+
+    audioRef.current =
+      null;
+
 
     setIsSpeaking(false);
+
   }
+
 
   // =====================================================
   // INTERRUPT AI
   // =====================================================
 
   function interruptAI() {
+
     if (!isSpeaking) return;
+
 
     stopSpeaking();
 
+
     if (voiceMode) {
+
       setTimeout(() => {
-        startRecording();
+
+        if (!recording) {
+          startRecording();
+        }
+
       }, 150);
+
     }
+
   }
+
 
   // =====================================================
   // LOADING
   // =====================================================
 
   if (loading) {
+
     return (
+
       <div className="chat-container">
+
         <div className="chat-loading-screen">
+
           <div className="loading-orb">
             N
           </div>
 
           <div className="loading-text">
+
             <span>
               Preparing your workspace
             </span>
 
             <div className="loading-dots">
+
               <i></i>
               <i></i>
               <i></i>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     );
+
   }
+
 
   // =====================================================
   // NO CHAT
   // =====================================================
 
   if (!chat) {
+
     return (
+
       <div className="chat-container">
+
         <div className="chat-no-chat">
+
           <div className="no-chat-icon">
             N
           </div>
@@ -1292,31 +2761,45 @@ export default function ChatBox({ chat, loading }) {
             Create a new conversation
             to start exploring.
           </p>
+
         </div>
+
       </div>
+
     );
+
   }
+
 
   // =====================================================
   // MAIN JSX
   // =====================================================
 
   return (
+
     <div className="chat-container">
 
-      {/* WELCOME */}
+
+      {/* =================================================
+          WELCOME
+      ================================================= */}
 
       {showWelcome && (
+
         <div className="nova-welcome-screen">
+
           <div className="nova-welcome-content">
 
             <div className="nova-welcome-logo">
+
               <span>N</span>
 
               <div className="nova-welcome-ring"></div>
 
               <div className="nova-welcome-glow"></div>
+
             </div>
+
 
             <div className="nova-welcome-text">
 
@@ -1329,27 +2812,39 @@ export default function ChatBox({ chat, loading }) {
               </h1>
 
               <p>
-                Nova AI is ready for you Made by Syed ALi Ahsan
+                Nova AI is ready for you
+                Made by Syed ALi Ahsan
               </p>
 
             </div>
 
+
             <div className="nova-welcome-loader">
+
               <span></span>
               <span></span>
               <span></span>
+
             </div>
 
           </div>
+
         </div>
+
       )}
 
-      {/* MESSAGES */}
+
+      {/* =================================================
+          MESSAGES
+      ================================================= */}
 
       <div
         className="messages-area"
-        ref={messagesContainerRef}
+        ref={
+          messagesContainerRef
+        }
       >
+
 
         {messages.length === 0 &&
           !sending && (
@@ -1359,18 +2854,27 @@ export default function ChatBox({ chat, loading }) {
               <div className="welcome-content">
 
                 <div className="welcome-logo">
+
                   <span>N</span>
+
                   <div className="logo-ring"></div>
+
                 </div>
 
+
                 <div className="welcome-badge">
+
                   <span className="welcome-dot"></span>
+
                   Nova AI is ready
+
                 </div>
+
 
                 <h2>
                   How can I help you today?
                 </h2>
+
 
                 <p>
                   Ask questions, explore
@@ -1380,7 +2884,9 @@ export default function ChatBox({ chat, loading }) {
                   or talk with Nova.
                 </p>
 
+
                 <div className="welcome-suggestions">
+
 
                   <button
                     type="button"
@@ -1393,6 +2899,7 @@ export default function ChatBox({ chat, loading }) {
                     Explain something
                   </button>
 
+
                   <button
                     type="button"
                     onClick={() =>
@@ -1403,6 +2910,7 @@ export default function ChatBox({ chat, loading }) {
                   >
                     Help me write
                   </button>
+
 
                   <button
                     type="button"
@@ -1415,12 +2923,15 @@ export default function ChatBox({ chat, loading }) {
                     Solve a problem
                   </button>
 
+
                 </div>
 
               </div>
 
             </div>
+
           )}
+
 
         <div className="message-list">
 
@@ -1428,37 +2939,49 @@ export default function ChatBox({ chat, loading }) {
             (msg, index) => (
 
               <Message
+
                 key={
                   msg.id ||
                   `${msg.role}-${index}`
                 }
 
-                role={msg.role}
+                role={
+                  msg.role
+                }
 
-                content={msg.content}
+                content={
+                  msg.content
+                }
 
-                imageUrl={msg.imageUrl}
+                imageUrl={
+                  msg.imageUrl
+                }
 
                 isGeneratedImage={
                   msg.isGeneratedImage
                 }
 
                 onRegenerate={
-                  msg.role === "assistant" &&
+                  msg.role ===
+                    "assistant" &&
                   !msg.imageUrl
                     ? regenerateMessage
                     : undefined
                 }
 
                 onEdit={
-                  msg.role === "user"
+                  msg.role ===
+                  "user"
+
                     ? (newText) =>
                         editMessage(
                           msg.id,
                           newText
                         )
+
                     : undefined
                 }
+
               />
 
             )
@@ -1466,9 +2989,11 @@ export default function ChatBox({ chat, loading }) {
 
         </div>
 
+
         {/* THINKING */}
 
         {isThinking && (
+
           <div className="nova-thinking">
 
             <div className="thinking-avatar">
@@ -1482,39 +3007,56 @@ export default function ChatBox({ chat, loading }) {
               </span>
 
               <div className="thinking-dots">
+
                 <span></span>
                 <span></span>
                 <span></span>
+
               </div>
 
             </div>
 
           </div>
+
         )}
+
 
         {sending &&
           !isSpeaking &&
           !isListening &&
           !isThinking && (
+
             <TypingIndicator />
+
           )}
+
 
         <div ref={bottomRef} />
 
       </div>
 
-      {/* FILE PREVIEW */}
+
+      {/* =================================================
+          FILE PREVIEW
+      ================================================= */}
 
       {selectedFile && (
+
         <div className="upload-preview">
 
           <div className="upload-preview-icon">
-            {uploadedFileType === "image" ? (
-              <FiImage />
-            ) : (
-              <FiPaperclip />
-            )}
+
+            {uploadedFileType ===
+            "image"
+
+              ? <FiImage />
+
+              : <FiPaperclip />
+
+            }
+
           </div>
+
 
           <div className="upload-preview-info">
 
@@ -1523,213 +3065,365 @@ export default function ChatBox({ chat, loading }) {
             </strong>
 
             <span>
-              {uploadedFileType === "image"
+
+              {uploadedFileType ===
+              "image"
+
                 ? "Image ready for questions"
-                : "PDF ready for questions"}
+
+                : "PDF ready for questions"
+
+              }
+
             </span>
 
           </div>
 
+
           <button
             type="button"
             className="remove-file"
-            onClick={clearSelectedFile}
+            onClick={
+              clearSelectedFile
+            }
             title="Remove file"
           >
+
             <FiX />
+
           </button>
 
         </div>
+
       )}
 
-      {/* IMAGE GENERATION MODE */}
+
+      {/* =================================================
+          IMAGE GENERATION MODE
+      ================================================= */}
 
       {imageGenerationMode && (
+
         <div className="nova-image-generation-bar">
 
           <div className="nova-image-generation-icon">
             <FiImage />
           </div>
 
+
           <div>
+
             <strong>
               Image Generation
             </strong>
 
             <span>
-              Describe the image you want Nova AI to create.
+              Describe the image you want
+              Nova AI to create.
             </span>
+
           </div>
+
 
           <button
             type="button"
             onClick={() => {
-              setImageGenerationMode(false);
+
+              setImageGenerationMode(
+                false
+              );
+
               setText("");
+
             }}
             title="Exit image generation"
           >
+
             <FiX />
+
           </button>
 
         </div>
+
       )}
 
-      {/* COMPOSER */}
+
+      {/* =================================================
+          COMPOSER
+      ================================================= */}
 
       <div className="chat-composer-wrap">
 
         <div className="chat-input-area">
 
+
+          {/* FILE INPUT */}
+
           <input
+
             ref={fileInputRef}
+
             type="file"
+
             className="file-input"
-            accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+
+            accept="
+              .pdf,
+              .jpg,
+              .jpeg,
+              .png,
+              .webp,
+              application/pdf,
+              image/jpeg,
+              image/png,
+              image/webp
+            "
+
             onChange={(e) => {
 
               const file =
                 e.target.files?.[0];
 
+
               if (file) {
+
                 uploadFile(file);
+
               }
 
-              e.target.value = "";
+
+              e.target.value =
+                "";
 
             }}
+
           />
+
 
           {/* ATTACH */}
 
           <button
+
             type="button"
+
             className="composer-btn"
+
             onClick={() =>
               fileInputRef.current?.click()
             }
+
             title="Attach PDF or image"
-            disabled={sending}
+
+            disabled={
+              sending ||
+              imageGenerationMode
+            }
+
           >
+
             <FiPaperclip />
+
           </button>
+
 
           {/* IMAGE GENERATION */}
 
           <button
+
             type="button"
-            className={`composer-btn ${
-              imageGenerationMode
-                ? "image-generation-active"
-                : ""
-            }`}
+
+            className={`
+              composer-btn
+              ${
+                imageGenerationMode
+                  ? "image-generation-active"
+                  : ""
+              }
+            `}
+
             onClick={() => {
 
-              if (imageGenerationMode) {
-                setImageGenerationMode(false);
+              if (
+                imageGenerationMode
+              ) {
+
+                setImageGenerationMode(
+                  false
+                );
+
               } else {
-                setImageGenerationMode(true);
-                setSelectedFile(null);
-                setUploadedFileId(null);
-                setUploadedFileType(null);
+
+                setImageGenerationMode(
+                  true
+                );
+
+                clearSelectedFile();
+
                 setText("");
+
               }
 
             }}
+
             title="Generate image"
-            disabled={sending}
+
+            disabled={
+              sending
+            }
+
           >
+
             <FiImage />
+
           </button>
+
 
           {/* MIC */}
 
           <button
+
             type="button"
-            className={`composer-btn ${
-              recording
-                ? "mic-recording"
-                : ""
-            }`}
+
+            className={`
+              composer-btn
+              ${
+                recording
+                  ? "mic-recording"
+                  : ""
+              }
+            `}
+
             onClick={() => {
 
               if (isSpeaking) {
+
                 interruptAI();
+
               } else {
+
                 toggleRecording();
+
               }
 
             }}
+
             title={
               recording
                 ? "Stop recording"
                 : "Voice input"
             }
+
             disabled={
               imageGenerationMode ||
               generatingImage
             }
+
           >
 
-            {recording ? (
-              <FiSquare />
-            ) : (
-              <FiMic />
-            )}
+            {recording
+
+              ? <FiSquare />
+
+              : <FiMic />
+
+            }
 
           </button>
+
 
           {/* VOICE MODE */}
 
           <button
+
             type="button"
-            className={`composer-btn ${
-              voiceMode
-                ? "voice-mode-active"
-                : ""
-            }`}
+
+            className={`
+              composer-btn
+              ${
+                voiceMode
+                  ? "voice-mode-active"
+                  : ""
+              }
+            `}
+
             onClick={() => {
 
               const next =
                 !voiceMode;
 
-              setVoiceMode(next);
-              setShowVoiceModal(true);
+
+              setVoiceMode(
+                next
+              );
+
+
+              setShowVoiceModal(
+                true
+              );
 
             }}
+
             title="Voice mode"
-            disabled={imageGenerationMode}
+
+            disabled={
+              imageGenerationMode
+            }
+
           >
+
             <FiHeadphones />
+
           </button>
 
-          {/* INPUT */}
+
+          {/* TEXT INPUT */}
 
           <textarea
+
             className="chat-input"
+
             value={text}
+
             placeholder={
+
               imageGenerationMode
+
                 ? "Describe the image you want..."
+
                 : recording
+
                 ? "Listening..."
+
                 : uploadedFileId
-                ? uploadedFileType === "image"
+
+                ? uploadedFileType ===
+                  "image"
+
                   ? "Ask anything about this image..."
+
                   : "Ask anything about this PDF..."
+
                 : "Message Nova AI..."
+
             }
+
             rows={1}
+
             disabled={
               recording ||
               generatingImage
             }
+
             onChange={(e) => {
 
-              setText(e.target.value);
+              setText(
+                e.target.value
+              );
+
 
               e.target.style.height =
                 "auto";
+
 
               e.target.style.height =
                 Math.min(
@@ -1738,6 +3432,7 @@ export default function ChatBox({ chat, loading }) {
                 ) + "px";
 
             }}
+
             onKeyDown={(e) => {
 
               if (
@@ -1752,45 +3447,73 @@ export default function ChatBox({ chat, loading }) {
               }
 
             }}
+
           />
+
 
           {/* SEND */}
 
           <button
+
             type="button"
-            className={`send-btn ${
-              text.trim()
-                ? "send-ready"
-                : ""
-            } ${
-              imageGenerationMode
-                ? "image-send-btn"
-                : ""
-            }`}
+
+            className={`
+              send-btn
+
+              ${
+                text.trim()
+                  ? "send-ready"
+                  : ""
+              }
+
+              ${
+                imageGenerationMode
+                  ? "image-send-btn"
+                  : ""
+              }
+            `}
+
             onClick={() =>
               sendMessage()
             }
+
             disabled={
+
               sending ||
+
               !text.trim() ||
+
               recording
+
             }
+
             title={
+
               imageGenerationMode
                 ? "Generate image"
                 : "Send message"
+
             }
+
           >
-            {imageGenerationMode ? (
-              <FiImage />
-            ) : (
-              <FiSend />
-            )}
+
+            {imageGenerationMode
+
+              ? <FiImage />
+
+              : <FiSend />
+
+            }
+
           </button>
+
 
         </div>
 
-        {/* FOOTER */}
+
+        {/* =================================================
+            FOOTER
+        ================================================= */}
 
         <div className="composer-footer">
 
@@ -1799,16 +3522,31 @@ export default function ChatBox({ chat, loading }) {
             Check important information.
           </span>
 
+
           <span className="composer-shortcut">
 
-            <kbd>Enter</kbd>
+            <kbd>
+              Enter
+            </kbd>
+
             {" "}to send
 
-            <span>•</span>
+            <span>
+              •
+            </span>
 
-            <kbd>Shift</kbd>
-            {" "}+
-            <kbd>Enter</kbd>
+            <kbd>
+              Shift
+            </kbd>
+
+            {" "}
+
+            +
+
+            <kbd>
+              Enter
+            </kbd>
+
             {" "}for new line
 
           </span>
@@ -1817,27 +3555,60 @@ export default function ChatBox({ chat, loading }) {
 
       </div>
 
-      {/* VOICE MODAL */}
+
+      {/* =================================================
+          VOICE MODAL
+      ================================================= */}
 
       <VoiceModal
-        open={showVoiceModal}
+
+        open={
+          showVoiceModal
+        }
+
         onClose={() => {
 
           stopRecording();
+
           stopSpeaking();
 
           setVoiceMode(false);
-          setShowVoiceModal(false);
+
+          setShowVoiceModal(
+            false
+          );
 
         }}
-        onMic={handleMic}
-        isListening={isListening}
-        isThinking={isThinking}
-        isSpeaking={isSpeaking}
-        voiceLevel={voiceLevel}
-        voiceData={voiceData}
+
+        onMic={
+          handleMic
+        }
+
+        isListening={
+          isListening
+        }
+
+        isThinking={
+          isThinking
+        }
+
+        isSpeaking={
+          isSpeaking
+        }
+
+        voiceLevel={
+          voiceLevel
+        }
+
+        voiceData={
+          voiceData
+        }
+
       />
 
+
     </div>
+
   );
+
 }
